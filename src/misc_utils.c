@@ -1,6 +1,6 @@
 #include "../include/misc_utils.h"
 
-inline size_t max(size_t a, size_t b)
+inline ptrdiff_t max(ptrdiff_t a, ptrdiff_t b)
 {
     return a >= b ? a : b;
 }

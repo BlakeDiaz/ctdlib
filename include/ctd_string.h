@@ -18,8 +18,8 @@ DEFAULT_OPTION_TYPES(OPTION_TYPE_DECL)
 typedef struct CTD_String
 {
     char* data;
-    size_t length;
-    size_t capacity;
+    ptrdiff_t length;
+    ptrdiff_t capacity;
 } CTD_String;
 
 /**
@@ -31,25 +31,25 @@ typedef struct CTD_String
 typedef struct CTD_String_View
 {
     char* data;
-    size_t length;
+    ptrdiff_t length;
 } CTD_String_View;
 
 typedef struct CTD_Strings
 {
     CTD_String* data;
-    size_t length;
+    ptrdiff_t length;
 } CTD_Strings;
 
 typedef struct CTD_String_Views
 {
     CTD_String_View* data;
-    size_t length;
+    ptrdiff_t length;
 } CTD_String_Views;
 
 typedef struct Find_Indices
 {
-    size_t* data;
-    size_t length;
+    ptrdiff_t* data;
+    ptrdiff_t length;
 } Find_Indices;
 
 #define ctd_string_create_from_macro(source, error)                                                                    \
@@ -58,18 +58,18 @@ typedef struct Find_Indices
         CTD_String_View,                                                                                               \
         ctd_string_create_from_view,                                                                                   \
         const char*: ctd_string_create_from_c_string)(source, error)
-CTD_String ctd_string_create(const size_t capacity, Error* error);
+CTD_String ctd_string_create(const ptrdiff_t capacity, Error* error);
 CTD_String ctd_string_create_from_view(const CTD_String_View view, Error* error);
 CTD_String ctd_string_create_from_c_string(const char* c_string, Error* error);
 CTD_String ctd_string_copy(const CTD_String str, Error* error);
 CTD_String ctd_string_copy_view(const CTD_String_View str, Error* error);
 void ctd_string_destroy(CTD_String* str);
 
-CTD_String_View ctd_string_view_create(const CTD_String str, const size_t start_index, const size_t end_index,
+CTD_String_View ctd_string_view_create(const CTD_String str, const ptrdiff_t start_index, const ptrdiff_t end_index,
                                        Error* error);
-CTD_String_View ctd_string_view_create_from_c_string(char* c_string, const size_t start_index, const size_t end_index,
-                                                     Error* error);
-CTD_String_View ctd_string_view_create_from_char_ptr(char* data, const size_t length);
+CTD_String_View ctd_string_view_create_from_c_string(char* c_string, const ptrdiff_t start_index,
+                                                     const ptrdiff_t end_index, Error* error);
+CTD_String_View ctd_string_view_create_from_char_ptr(char* data, const ptrdiff_t length);
 
 CTD_String ctd_string_concat(const CTD_String a, const CTD_String b, Error* error);
 CTD_String ctd_string_concat_view(const CTD_String_View a, const CTD_String_View b, Error* error);
@@ -82,7 +82,8 @@ void ctd_string_append_inner(CTD_String* str, CTD_String_View to_append, Error* 
  * @param error Pointer to Error struct.
  */
 #define ctd_string_append(str, to_append, error) ctd_string_append_inner(str, to_view(to_append), error)
-void ctd_string_insert_inner(CTD_String* str, const CTD_String_View to_insert, const size_t insert_index, Error* error);
+void ctd_string_insert_inner(CTD_String* str, const CTD_String_View to_insert, const ptrdiff_t insert_index,
+                             Error* error);
 /**
  * Inserts a string into another string.
  *
@@ -102,8 +103,8 @@ bool ctd_string_is_empty_inner(const CTD_String_View str);
 bool ctd_string_equals_inner(const CTD_String_View a, const CTD_String_View b);
 #define ctd_string_equals(a, b) ctd_string_equals_inner(to_view(a), to_view(b))
 bool ctd_string_contains(const CTD_String str, const CTD_String contained_str);
-option(size_t) ctd_string_find_inner(const CTD_String_View str, const CTD_String_View substring, size_t starting_index,
-                                     Error* error);
+option(ptrdiff_t) ctd_string_find_inner(const CTD_String_View str, const CTD_String_View substring,
+                                        ptrdiff_t starting_index, Error* error);
 #define ctd_string_find(str, substring, starting_index, error)                                                         \
     ctd_string_find_inner(to_view(str), to_view(substring), starting_index, error)
 
@@ -116,24 +117,23 @@ option(size_t) ctd_string_find_inner(const CTD_String_View str, const CTD_String
  * @param replacement String to be inserted.
  * @param error Pointer to Error struct.
  */
-void ctd_string_replace_inner(CTD_String* str, size_t starting_index, size_t count, const CTD_String_View replacement, Error* error);
-#define ctd_string_replace(str, starting_index, count, replacement, error) \
+void ctd_string_replace_inner(CTD_String* str, ptrdiff_t starting_index, ptrdiff_t count,
+                              const CTD_String_View replacement, Error* error);
+#define ctd_string_replace(str, starting_index, count, replacement, error)                                             \
     ctd_string_replace_inner(str, starting_index, count, to_view(replacement), error)
 
 CTD_Strings ctd_string_split_inner(const CTD_String_View str, const CTD_String_View delimiter, Error* error);
 CTD_String_Views ctd_string_split_views_inner(const CTD_String_View str, const CTD_String_View delimiter, Error* error);
 
 CTD_String ctd_string_remove_whitespace_inner(CTD_String_View str, Error* error);
-#define ctd_string_remove_whitespace(str, error) \
-    ctd_string_remove_whitespace_inner(to_view(str), error);
+#define ctd_string_remove_whitespace(str, error) ctd_string_remove_whitespace_inner(to_view(str), error);
 
 CTD_String_View ctd_string_view_create_from_full_string_(const CTD_String str);
 CTD_String_View ctd_string_view_create_from_view_(const CTD_String_View view);
 CTD_String_View ctd_string_view_create_from_full_c_string_(char* c_str);
 
 char* ctd_string_to_c_string_inner(CTD_String_View str, Error* error);
-#define ctd_string_to_c_string(str, error_ptr) \
-    ctd_string_to_c_string_inner(to_view(str, error_ptr))
+#define ctd_string_to_c_string(str, error_ptr) ctd_string_to_c_string_inner(to_view(str, error_ptr))
 /**
  * Convenience macro to convert CTD_String into CTD_String_View containing full contents of string
  *

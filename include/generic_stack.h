@@ -29,8 +29,8 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
     typedef struct phs_stack_##typename                                                                                \
     {                                                                                                                  \
         type* data;                                                                                                    \
-        size_t length;                                                                                                 \
-        size_t capacity;                                                                                               \
+        ptrdiff_t length;                                                                                              \
+        ptrdiff_t capacity;                                                                                            \
     }                                                                                                                  \
     phs_stack_##typename;                                                                                              \
     typedef struct phs_stack_##typename##_iterator                                                                     \
@@ -40,7 +40,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
     phs_stack_##typename##_iterator;
 
 #define GENERIC_STACK_FUNCTIONS_DECL(type, typename, ...)                                                              \
-    phs_stack_##typename phs_stack_##typename##_create(size_t capacity, Error* error);                                 \
+    phs_stack_##typename phs_stack_##typename##_create(ptrdiff_t capacity, Error* error);                              \
     void phs_stack_##typename##_destroy(phs_stack_##typename* self);                                                   \
     void phs_stack_##typename##_push(phs_stack_##typename* self, type value, Error* error);                            \
     type phs_stack_##typename##_pop(phs_stack_##typename* self, Error* error);                                         \
@@ -52,10 +52,10 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
     void phs_stack_##typename##_iterator_increment(phs_stack_##typename##_iterator* iterator, Error* error);
 
 #define GENERIC_STACK_IMPL(type, typename, ...)                                                                        \
-    void phs_stack_##typename##_resize(phs_stack_##typename* self, size_t new_capacity, Error* error);                 \
+    void phs_stack_##typename##_resize(phs_stack_##typename* self, ptrdiff_t new_capacity, Error* error);              \
     void phs_stack_##typename##_maybe_expand(phs_stack_##typename* self, Error* error);                                \
     void phs_stack_##typename##_maybe_contract(phs_stack_##typename* self, Error* error);                              \
-    phs_stack_##typename phs_stack_##typename##_create(size_t capacity, Error* error)                                  \
+    phs_stack_##typename phs_stack_##typename##_create(ptrdiff_t capacity, Error* error)                               \
     {                                                                                                                  \
         if (capacity == 0)                                                                                             \
         {                                                                                                              \
@@ -153,7 +153,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
                                                                                                                        \
         return self->data[self->length - 1];                                                                           \
     }                                                                                                                  \
-    void phs_stack_##typename##_resize(phs_stack_##typename* self, size_t new_capacity, Error* error)                  \
+    void phs_stack_##typename##_resize(phs_stack_##typename* self, ptrdiff_t new_capacity, Error* error)               \
     {                                                                                                                  \
         type* new_data = realloc(self->data, new_capacity);                                                            \
         if (new_data == NULL)                                                                                          \

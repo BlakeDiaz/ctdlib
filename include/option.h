@@ -37,6 +37,7 @@
     X(signed long, slong)                                                                                              \
     X(unsigned long, ulong)                                                                                            \
     X(size_t, size_t)                                                                                                  \
+    X(ptrdiff_t, ptrdiff_t)                                                                                            \
     X(float, float)                                                                                                    \
     X(double, double)                                                                                                  \
     X(long double, ldouble)                                                                                            \

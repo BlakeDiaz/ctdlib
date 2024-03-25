@@ -5,7 +5,6 @@
 #include <macro_tools.h>
 #include <stdlib.h>
 
-
 #define DEFAULT_DYNAMIC_ARRAY_TYPES(X)                                                                                 \
     X(bool, bool)                                                                                                      \
     X(char, char)                                                                                                      \
@@ -109,8 +108,8 @@
 #define DYNAMIC_ARRAY_TYPE_DECL(type, typename, ...)                                                                   \
     typedef struct ctd_dynamic_array_##typename                                                                        \
     {                                                                                                                  \
-        size_t length;                                                                                                 \
-        size_t capacity;                                                                                               \
+        ptrdiff_t length;                                                                                              \
+        ptrdiff_t capacity;                                                                                            \
         type* data;                                                                                                    \
     }                                                                                                                  \
     ctd_dynamic_array_##typename;                                                                                      \
@@ -121,23 +120,23 @@
     ctd_dynamic_array_##typename##_iterator;
 
 #define DYNAMIC_ARRAY_FUNCTIONS_DECL(type, typename, ...)                                                              \
-    ctd_dynamic_array_##typename ctd_dynamic_array_##typename##_create(size_t capacity, Error* error);                 \
+    ctd_dynamic_array_##typename ctd_dynamic_array_##typename##_create(ptrdiff_t capacity, Error* error);              \
     void ctd_dynamic_array_##typename##_destroy(ctd_dynamic_array_##typename* ctd_dynamic_array, Error* error);        \
     void ctd_dynamic_array_##                                                                                          \
         typename##_append(ctd_dynamic_array_##typename* ctd_dynamic_array, type item, Error* error);                   \
     void ctd_dynamic_array_##typename##_append_ctd_dynamic_array(                                                      \
         ctd_dynamic_array_##typename* ctd_dynamic_array, const ctd_dynamic_array_##typename to_append, Error* error);  \
     void ctd_dynamic_array_##typename##_insert(ctd_dynamic_array_##typename* ctd_dynamic_array, type item,             \
-                                               const size_t index, Error* error);                                      \
+                                               const ptrdiff_t index, Error* error);                                   \
     void ctd_dynamic_array_##typename##_insert_ctd_dynamic_array(ctd_dynamic_array_##typename* ctd_dynamic_array,      \
                                                                  const ctd_dynamic_array_##typename to_insert,         \
-                                                                 const size_t index, Error* error);                    \
+                                                                 const ptrdiff_t index, Error* error);                 \
     type ctd_dynamic_array_##typename##_pop_back(ctd_dynamic_array_##typename* ctd_dynamic_array, Error* error);       \
     type ctd_dynamic_array_##                                                                                          \
-        typename##_remove(ctd_dynamic_array_##typename* ctd_dynamic_array, const size_t index, Error* error);          \
+        typename##_remove(ctd_dynamic_array_##typename* ctd_dynamic_array, const ptrdiff_t index, Error* error);       \
     type ctd_dynamic_array_##                                                                                          \
-        typename##_remove_multiple(ctd_dynamic_array_##typename* ctd_dynamic_array, const size_t first_index,          \
-                                   const size_t last_index, Error* error);                                             \
+        typename##_remove_multiple(ctd_dynamic_array_##typename* ctd_dynamic_array, const ptrdiff_t first_index,       \
+                                   const ptrdiff_t last_index, Error* error);                                          \
     void ctd_dynamic_array_##typename##_clear(ctd_dynamic_array_##typename* ctd_dynamic_array, Error* error);          \
     ctd_dynamic_array_##typename##_iterator ctd_dynamic_array_##                                                       \
         typename##_iterator_begin(ctd_dynamic_array_##typename* ctd_dynamic_array, Error* error);                      \
@@ -147,12 +146,12 @@
         typename##_iterator_increment(ctd_dynamic_array_##typename##_iterator* iterator, Error* error);
 
 #define DYNAMIC_ARRAY_IMPL(type, typename, ...)                                                                        \
-    void ctd_dynamic_array_##                                                                                          \
-        typename##_resize(ctd_dynamic_array_##typename* ctd_dynamic_array, const size_t new_capacity, Error* error);   \
+    void ctd_dynamic_array_##typename##_resize(ctd_dynamic_array_##typename* ctd_dynamic_array,                        \
+                                               const ptrdiff_t new_capacity, Error* error);                            \
     void ctd_dynamic_array_##typename##_maybe_expand(ctd_dynamic_array_##typename* ctd_dynamic_array,                  \
-                                                     const size_t expand_by, Error* error);                            \
+                                                     const ptrdiff_t expand_by, Error* error);                         \
     void ctd_dynamic_array_##typename##_maybe_contract(ctd_dynamic_array_##typename* ctd_dynamic_array, Error* error); \
-    ctd_dynamic_array_##typename ctd_dynamic_array_##typename##_create(size_t capacity, Error* error)                  \
+    ctd_dynamic_array_##typename ctd_dynamic_array_##typename##_create(ptrdiff_t capacity, Error* error)               \
     {                                                                                                                  \
         if (capacity == 0)                                                                                             \
         {                                                                                                              \
@@ -230,8 +229,8 @@
             return;                                                                                                    \
         }                                                                                                              \
                                                                                                                        \
-        size_t to_append_index = 0;                                                                                    \
-        size_t ctd_dynamic_array_index = ctd_dynamic_array->length;                                                    \
+        ptrdiff_t to_append_index = 0;                                                                                 \
+        ptrdiff_t ctd_dynamic_array_index = ctd_dynamic_array->length;                                                 \
                                                                                                                        \
         while (to_append_index < to_append.length)                                                                     \
         {                                                                                                              \
@@ -245,7 +244,7 @@
     }                                                                                                                  \
                                                                                                                        \
     void ctd_dynamic_array_##typename##_insert(ctd_dynamic_array_##typename* ctd_dynamic_array, type item,             \
-                                               const size_t index, Error* error)                                       \
+                                               const ptrdiff_t index, Error* error)                                    \
     {                                                                                                                  \
         if (ctd_dynamic_array == NULL)                                                                                 \
         {                                                                                                              \
@@ -274,7 +273,7 @@
             return;                                                                                                    \
         }                                                                                                              \
                                                                                                                        \
-        for (size_t i = ctd_dynamic_array->length - 1; i >= index; i--)                                                \
+        for (ptrdiff_t i = ctd_dynamic_array->length - 1; i >= index; i--)                                             \
         {                                                                                                              \
             ctd_dynamic_array->data[i + 1] = ctd_dynamic_array->data[i];                                               \
         }                                                                                                              \
@@ -285,7 +284,7 @@
                                                                                                                        \
     void ctd_dynamic_array_##typename##_insert_ctd_dynamic_array(ctd_dynamic_array_##typename* ctd_dynamic_array,      \
                                                                  const ctd_dynamic_array_##typename to_insert,         \
-                                                                 const size_t index, Error* error)                     \
+                                                                 const ptrdiff_t index, Error* error)                  \
     {                                                                                                                  \
         if (ctd_dynamic_array == NULL)                                                                                 \
         {                                                                                                              \
@@ -305,20 +304,20 @@
             return;                                                                                                    \
         }                                                                                                              \
                                                                                                                        \
-        size_t new_length = ctd_dynamic_array->length + to_insert.length;                                              \
+        ptrdiff_t new_length = ctd_dynamic_array->length + to_insert.length;                                           \
         ctd_dynamic_array_##typename##_maybe_expand(ctd_dynamic_array, to_insert.length, error);                       \
         if (error->error_type != NO_ERROR)                                                                             \
         {                                                                                                              \
             return;                                                                                                    \
         }                                                                                                              \
                                                                                                                        \
-        for (size_t i = ctd_dynamic_array->length - 1; i >= index; i--)                                                \
+        for (ptrdiff_t i = ctd_dynamic_array->length - 1; i >= index; i--)                                             \
         {                                                                                                              \
             ctd_dynamic_array->data[i + 1] = ctd_dynamic_array->data[i];                                               \
         }                                                                                                              \
                                                                                                                        \
-        size_t to_insert_index = 0;                                                                                    \
-        size_t ctd_dynamic_array_index = index;                                                                        \
+        ptrdiff_t to_insert_index = 0;                                                                                 \
+        ptrdiff_t ctd_dynamic_array_index = index;                                                                     \
         while (to_insert_index < to_insert.length)                                                                     \
         {                                                                                                              \
             ctd_dynamic_array->data[ctd_dynamic_array_index] = to_insert.data[to_insert_index];                        \
@@ -364,7 +363,7 @@
     }                                                                                                                  \
                                                                                                                        \
     type ctd_dynamic_array_##                                                                                          \
-        typename##_remove(ctd_dynamic_array_##typename* ctd_dynamic_array, const size_t index, Error* error)           \
+        typename##_remove(ctd_dynamic_array_##typename* ctd_dynamic_array, const ptrdiff_t index, Error* error)        \
     {                                                                                                                  \
         if (ctd_dynamic_array == NULL)                                                                                 \
         {                                                                                                              \
@@ -385,7 +384,7 @@
                                                                                                                        \
         type removed_element = ctd_dynamic_array->data[index];                                                         \
                                                                                                                        \
-        for (size_t i = index; i < ctd_dynamic_array->length - 1; i++)                                                 \
+        for (ptrdiff_t i = index; i < ctd_dynamic_array->length - 1; i++)                                              \
         {                                                                                                              \
             ctd_dynamic_array[i] = ctd_dynamic_array[i + 1];                                                           \
         }                                                                                                              \
@@ -403,8 +402,8 @@
     }                                                                                                                  \
                                                                                                                        \
     type ctd_dynamic_array_##                                                                                          \
-        typename##_remove_multiple(ctd_dynamic_array_##typename* ctd_dynamic_array, const size_t first_index,          \
-                                   const size_t last_index, Error* error)                                              \
+        typename##_remove_multiple(ctd_dynamic_array_##typename* ctd_dynamic_array, const ptrdiff_t first_index,       \
+                                   const ptrdiff_t last_index, Error* error)                                           \
     {                                                                                                                  \
         if (ctd_dynamic_array == NULL)                                                                                 \
         {                                                                                                              \
@@ -442,11 +441,11 @@
         {                                                                                                              \
             return ctd_dynamic_array_##typename##_remove(ctd_dynamic_array, first_index, error);                       \
         }                                                                                                              \
-        const size_t number_of_elements_subtracted = (last_index - first_index) + 1;                                   \
+        const ptrdiff_t number_of_elements_subtracted = (last_index - first_index) + 1;                                \
                                                                                                                        \
         type last_removed_element = ctd_dynamic_array->data[last_index];                                               \
                                                                                                                        \
-        for (size_t i = first_index; i < ctd_dynamic_array->length - 1 - number_of_elements_subtracted; i++)           \
+        for (ptrdiff_t i = first_index; i < ctd_dynamic_array->length - 1 - number_of_elements_subtracted; i++)        \
         {                                                                                                              \
             ctd_dynamic_array[i] = ctd_dynamic_array[i + number_of_elements_subtracted];                               \
         }                                                                                                              \
@@ -473,14 +472,14 @@
         }                                                                                                              \
                                                                                                                        \
         type empty = {0};                                                                                              \
-        for (size_t i = 0; i < ctd_dynamic_array->length; i++)                                                         \
+        for (ptrdiff_t i = 0; i < ctd_dynamic_array->length; i++)                                                      \
         {                                                                                                              \
             ctd_dynamic_array->data[i] = empty;                                                                        \
         }                                                                                                              \
     }                                                                                                                  \
                                                                                                                        \
     void ctd_dynamic_array_##                                                                                          \
-        typename##_resize(ctd_dynamic_array_##typename* ctd_dynamic_array, const size_t new_capacity, Error* error)    \
+        typename##_resize(ctd_dynamic_array_##typename* ctd_dynamic_array, const ptrdiff_t new_capacity, Error* error) \
     {                                                                                                                  \
         type* new_data = realloc(ctd_dynamic_array->data, new_capacity * sizeof(type));                                \
         if (new_data == NULL)                                                                                          \
@@ -493,8 +492,8 @@
         ctd_dynamic_array->data = new_data;                                                                            \
     }                                                                                                                  \
                                                                                                                        \
-    void ctd_dynamic_array_##                                                                                          \
-        typename##_maybe_expand(ctd_dynamic_array_##typename* ctd_dynamic_array, const size_t expand_by, Error* error) \
+    void ctd_dynamic_array_##typename##_maybe_expand(ctd_dynamic_array_##typename* ctd_dynamic_array,                  \
+                                                     const ptrdiff_t expand_by, Error* error)                          \
     {                                                                                                                  \
         if (ctd_dynamic_array->length + expand_by >= ctd_dynamic_array->capacity)                                      \
         {                                                                                                              \

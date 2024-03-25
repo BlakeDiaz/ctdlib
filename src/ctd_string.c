@@ -17,8 +17,8 @@ CTD_DYNAMIC_ARRAY_TYPES(DYNAMIC_ARRAY_TYPE_DECL)
 CTD_DYNAMIC_ARRAY_TYPES(DYNAMIC_ARRAY_FUNCTIONS_DECL)
 CTD_DYNAMIC_ARRAY_TYPES(DYNAMIC_ARRAY_IMPL)
 
-void ctd_string_resize(CTD_String* str, const size_t new_capacity, Error* error);
-void ctd_string_maybe_expand(CTD_String* str, const size_t expand_by, Error* error);
+void ctd_string_resize(CTD_String* str, const ptrdiff_t new_capacity, Error* error);
+void ctd_string_maybe_expand(CTD_String* str, const ptrdiff_t expand_by, Error* error);
 void ctd_string_maybe_contract(CTD_String* str, Error* error);
 
 /**
@@ -29,7 +29,7 @@ void ctd_string_maybe_contract(CTD_String* str, Error* error);
  * @param error Pointer to Error struct.
  * @return CTD_String.
  */
-CTD_String ctd_string_create(const size_t capacity, Error* error)
+CTD_String ctd_string_create(const ptrdiff_t capacity, Error* error)
 {
     CTD_String string = {0};
     string.capacity = capacity;
@@ -88,7 +88,7 @@ CTD_String ctd_string_create_from_c_string(const char* c_string, Error* error)
         return empty;
     }
 
-    size_t new_string_length = strlen(c_string);
+    ptrdiff_t new_string_length = strlen(c_string);
     CTD_String new_string = {.data = malloc(new_string_length * sizeof(char)), .length = new_string_length, .capacity = new_string_length};
     if (new_string.data == NULL)
     {
@@ -103,7 +103,7 @@ CTD_String ctd_string_create_from_c_string(const char* c_string, Error* error)
     return new_string;
 }
 
-CTD_String ctd_string_create_from_char_ptr(const char* data, size_t length, Error* error)
+CTD_String ctd_string_create_from_char_ptr(const char* data, ptrdiff_t length, Error* error)
 {
     if (data == NULL)
     {
@@ -195,7 +195,7 @@ void ctd_string_destroy(CTD_String* str)
  * @param error Pointer to Error struct.
  * @return CTD_String_View.
  */
-CTD_String_View ctd_string_view_create(const CTD_String str, const size_t start_index, const size_t end_index, Error* error)
+CTD_String_View ctd_string_view_create(const CTD_String str, const ptrdiff_t start_index, const ptrdiff_t end_index, Error* error)
 {
     if (start_index > end_index)
     {
@@ -229,8 +229,8 @@ CTD_String_View ctd_string_view_create(const CTD_String str, const size_t start_
  * @param error Pointer to Error struct.
  * @return CTD_String_View.
  */
-CTD_String_View ctd_string_view_create_from_c_string(char* c_string, const size_t start_index,
-                                                     const size_t end_index, Error* error)
+CTD_String_View ctd_string_view_create_from_c_string(char* c_string, const ptrdiff_t start_index,
+                                                     const ptrdiff_t end_index, Error* error)
 {
     if (start_index > end_index)
     {
@@ -240,7 +240,7 @@ CTD_String_View ctd_string_view_create_from_c_string(char* c_string, const size_
         CTD_String_View empty = {0};
         return empty;
     }
-    size_t length = strlen(c_string);
+    ptrdiff_t length = strlen(c_string);
 
     if (end_index > length)
     {
@@ -256,7 +256,7 @@ CTD_String_View ctd_string_view_create_from_c_string(char* c_string, const size_
     return view;
 }
 
-inline CTD_String_View ctd_string_view_create_from_char_ptr(char* data, const size_t length)
+inline CTD_String_View ctd_string_view_create_from_char_ptr(char* data, const ptrdiff_t length)
 {
     return (CTD_String_View) {.data = data, .length = length};
 }
@@ -271,7 +271,7 @@ inline CTD_String_View ctd_string_view_create_from_char_ptr(char* data, const si
  */
 CTD_String ctd_string_concat(const CTD_String a, const CTD_String b, Error* error)
 {
-    size_t new_string_length = a.length + b.length;
+    ptrdiff_t new_string_length = a.length + b.length;
     CTD_String new_string = {0};
     new_string.length = new_string_length;
     new_string.capacity = new_string_length;
@@ -301,7 +301,7 @@ CTD_String ctd_string_concat(const CTD_String a, const CTD_String b, Error* erro
  */
 CTD_String ctd_string_concat_view(const CTD_String_View a, const CTD_String_View b, Error* error)
 {
-    size_t new_string_length = a.length + b.length;
+    ptrdiff_t new_string_length = a.length + b.length;
     CTD_String new_string = {0};
     new_string.length = new_string_length;
     new_string.capacity = new_string_length;
@@ -341,7 +341,7 @@ void ctd_string_append_inner(CTD_String* str, CTD_String_View to_append, Error* 
     str->length += to_append.length;
 }
 
-void ctd_string_insert_inner(CTD_String* str, CTD_String_View to_insert, const size_t index, Error* error)
+void ctd_string_insert_inner(CTD_String* str, CTD_String_View to_insert, const ptrdiff_t index, Error* error)
 {
     if (str == NULL)
     {
@@ -372,7 +372,7 @@ void ctd_string_insert_inner(CTD_String* str, CTD_String_View to_insert, const s
 
     // Move characters at and after index to the right to make room for the inserted text
     // TODO replace w/ memmove
-    for (size_t i = str->length - 1; i >= index; i--)
+    for (ptrdiff_t i = str->length - 1; i >= index; i--)
     {
         str->data[i + to_insert.length] = str->data[i];
     }
@@ -444,7 +444,7 @@ bool ctd_string_contains_inner(const CTD_String_View str, const CTD_String_View 
         return false;
     }
 
-    for (size_t i = 0; i < str.length; i++)
+    for (ptrdiff_t i = 0; i < str.length; i++)
     {
         // If this is true, there isn't enough room inside str to contain the substring
         if (str.length - i < substring.length)
@@ -467,31 +467,31 @@ bool ctd_string_contains_inner(const CTD_String_View str, const CTD_String_View 
     return false;
 }
 
-option(size_t) ctd_string_find_inner(const CTD_String_View str, const CTD_String_View substring, size_t starting_index, Error* error)
+option(ptrdiff_t) ctd_string_find_inner(const CTD_String_View str, const CTD_String_View substring, ptrdiff_t starting_index, Error* error)
 {
     if (starting_index >= str.length)
     {
         error->error_type = INVALID_ARGUMENT;
         error->error_message = "Starting index was greater than or equal to string's length.";
 
-        return NONE(size_t);
+        return NONE(ptrdiff_t);
     }
 
     if (str.length - starting_index < substring.length)
     {
-        return NONE(size_t);
+        return NONE(ptrdiff_t);
     }
     if (ctd_string_is_empty(str) || substring.length == 0)
     {
-        return NONE(size_t);
+        return NONE(ptrdiff_t);
     }
 
-    for (size_t i = starting_index; i < str.length; i++)
+    for (ptrdiff_t i = starting_index; i < str.length; i++)
     {
         // If this is true, there isn't enough room inside str to contain the substring
         if (str.length - i < substring.length)
         {
-            return NONE(size_t);
+            return NONE(ptrdiff_t);
         }
         // If this is true, then the substring can't start at this character, and we move onto the next one
         if (str.data[i] != substring.data[0])
@@ -502,22 +502,22 @@ option(size_t) ctd_string_find_inner(const CTD_String_View str, const CTD_String
         CTD_String_View str_view = {.data = str.data + i, .length = substring.length};
         if (ctd_string_equals(str_view, substring))
         {
-            return SOME(size_t, i);
+            return SOME(ptrdiff_t, i);
         }
     }
 
-    return NONE(size_t);
+    return NONE(ptrdiff_t);
 }
 
-Find_Indices ctd_string_find_all_inner(const CTD_String_View str, const CTD_String_View delimiter, size_t starting_index, Error* error)
+Find_Indices ctd_string_find_all_inner(const CTD_String_View str, const CTD_String_View delimiter, ptrdiff_t starting_index, Error* error)
 {
-    ctd_internal_dynamic_array(size_t) indices = {.data = malloc(sizeof(size_t)), .length = 0, .capacity = 1};
-    option(size_t) index;
+    ctd_internal_dynamic_array(ptrdiff_t) indices = {.data = malloc(sizeof(ptrdiff_t)), .length = 0, .capacity = 1};
+    option(ptrdiff_t) index;
 
     index = ctd_string_find_inner(str, delimiter, starting_index, error);
     while (IS_SOME(index))
     {
-        ctd_internal_dynamic_array_append(indices, size_t, index.value, error);
+        ctd_internal_dynamic_array_append(indices, ptrdiff_t, index.value, error);
         if (error->error_type != NO_ERROR)
         {
             free(indices.data);
@@ -536,7 +536,7 @@ Find_Indices ctd_string_find_all_inner(const CTD_String_View str, const CTD_Stri
     return (Find_Indices) {0};
 }
 
-void ctd_string_replace_inner(CTD_String* str, size_t start_position, size_t count, const CTD_String_View replacement, Error* error)
+void ctd_string_replace_inner(CTD_String* str, ptrdiff_t start_position, ptrdiff_t count, const CTD_String_View replacement, Error* error)
 {
     if (start_position >= str->length)
     {
@@ -558,7 +558,7 @@ void ctd_string_replace_inner(CTD_String* str, size_t start_position, size_t cou
     {
         return;
     }
-    size_t bytes_to_move = (str->length - start_position - count) * sizeof(char);
+    ptrdiff_t bytes_to_move = (str->length - start_position - count) * sizeof(char);
     memmove(str->data + start_position + replacement.length, str->data + start_position + count, bytes_to_move);
     memcpy(str->data + start_position, replacement.data, replacement.length * sizeof(char));
     if (replacement.length > count)
@@ -587,8 +587,8 @@ CTD_Strings ctd_string_split_inner(const CTD_String_View str, const CTD_String_V
 
     ctd_internal_dynamic_array(CTD_String) strings = {.data = malloc(sizeof(CTD_String)), .length = 0, .capacity = 1};
 
-    size_t starting_index = 0;
-    option(size_t) ending_index;
+    ptrdiff_t starting_index = 0;
+    option(ptrdiff_t) ending_index;
     // This variable is here to run the loop one more time than otherwise in order to add the last string to our list
     bool done = false;
     while (!done)
@@ -632,8 +632,8 @@ CTD_String_Views ctd_string_split_views_inner(const CTD_String_View str, const C
 
     ctd_internal_dynamic_array(CTD_String_View) strings = {.data = malloc(sizeof(CTD_String_View)), .length = 0, .capacity = 1};
 
-    size_t starting_index = 0;
-    option(size_t) ending_index;
+    ptrdiff_t starting_index = 0;
+    option(ptrdiff_t) ending_index;
     // This variable is here to run the loop one more time than otherwise in order to add the last string to our list
     bool done = false;
     while (!done)
@@ -686,7 +686,7 @@ CTD_String ctd_string_remove_whitespace_inner(CTD_String_View str, Error* error)
     {
         return (CTD_String) {0};
     }
-    size_t i = 0, j = 0;
+    ptrdiff_t i = 0, j = 0;
     char expression_char;
     while (i < str.length)
     {
@@ -735,7 +735,7 @@ CTD_String ctd_string_remove_whitespace_inner(CTD_String_View str, Error* error)
  * @param expand_by The amount of characters that will be added to str.
  * @param error Pointer to Error struct.
  */
-void ctd_string_maybe_expand(CTD_String* str, size_t expand_by, Error* error)
+void ctd_string_maybe_expand(CTD_String* str, ptrdiff_t expand_by, Error* error)
 {
     if (str->length + expand_by >= str->capacity)
     {
@@ -765,7 +765,7 @@ void string_maybe_contract(CTD_String* str, Error* error)
  * @param new_capacity The new capacity of str.
  * @param error Pointer to Error struct.
  */
-void ctd_string_resize(CTD_String* str, const size_t new_capacity, Error* error)
+void ctd_string_resize(CTD_String* str, const ptrdiff_t new_capacity, Error* error)
 {
     char* new_data = realloc(str->data, new_capacity);
     if (new_data == NULL)

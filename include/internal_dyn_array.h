@@ -6,8 +6,8 @@
     struct                                                                                                             \
     {                                                                                                                  \
         type* data;                                                                                                    \
-        size_t length;                                                                                                 \
-        size_t capacity;                                                                                               \
+        ptrdiff_t length;                                                                                              \
+        ptrdiff_t capacity;                                                                                            \
     }
 
 #define ctd_internal_dynamic_array_append(array, type, item, error_ptr)                                                \
