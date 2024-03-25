@@ -1,8 +1,8 @@
 #ifndef DYN_STRING_H
 #define DYN_STRING_H
 
-#include "error_message.h"
-#include "option.h"
+#include <error_message.h>
+#include <option.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -116,23 +116,24 @@ option(size_t) ctd_string_find_inner(const CTD_String_View str, const CTD_String
  * @param replacement String to be inserted.
  * @param error Pointer to Error struct.
  */
-void ctd_string_replace_inner(CTD_String* str, size_t starting_index, size_t count, CTD_String_View replacement,
-                              Error* error);
-#define ctd_string_replace(str, starting_index, count, replacement, error)                                             \
+void ctd_string_replace_inner(CTD_String* str, size_t starting_index, size_t count, const CTD_String_View replacement, Error* error);
+#define ctd_string_replace(str, starting_index, count, replacement, error) \
     ctd_string_replace_inner(str, starting_index, count, to_view(replacement), error)
 
 CTD_Strings ctd_string_split_inner(const CTD_String_View str, const CTD_String_View delimiter, Error* error);
 CTD_String_Views ctd_string_split_views_inner(const CTD_String_View str, const CTD_String_View delimiter, Error* error);
 
 CTD_String ctd_string_remove_whitespace_inner(CTD_String_View str, Error* error);
-#define ctd_string_remove_whitespace(str, error) ctd_string_remove_whitespace_inner(to_view(str), error)
+#define ctd_string_remove_whitespace(str, error) \
+    ctd_string_remove_whitespace_inner(to_view(str), error);
 
 CTD_String_View ctd_string_view_create_from_full_string_(const CTD_String str);
 CTD_String_View ctd_string_view_create_from_view_(const CTD_String_View view);
 CTD_String_View ctd_string_view_create_from_full_c_string_(char* c_str);
 
 char* ctd_string_to_c_string_inner(CTD_String_View str, Error* error);
-#define ctd_string_to_c_string(str, error_ptr) ctd_string_to_c_string_inner(to_view(str, error_ptr))
+#define ctd_string_to_c_string(str, error_ptr) \
+    ctd_string_to_c_string_inner(to_view(str, error_ptr))
 /**
  * Convenience macro to convert CTD_String into CTD_String_View containing full contents of string
  *

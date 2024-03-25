@@ -1,13 +1,13 @@
-#include "../include/error_message.h"
-#include "../include/option.h"
+#include <error_message.h>
+#include <option.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/internal_dyn_array.h"
-#include "../include/misc_utils.h"
+#include <internal_dyn_array.h>
+#include <misc_utils.h>
 #include <ctd_string.h>
 
-#include "../include/generic_dynamic_array.h"
+#include <generic_dynamic_array.h>
 
 #define CTD_DYNAMIC_ARRAY_TYPES(X)\
 X(CTD_String, string, __VA_ARGS__)\
@@ -64,7 +64,7 @@ CTD_String ctd_string_create_from_view(const CTD_String_View view, Error* error)
         return (CTD_String) {0};
     }
 
-    mempcpy(string.data, view.data, view.length * sizeof(char));
+    memcpy(string.data, view.data, view.length * sizeof(char));
 
     return string;
 }
@@ -563,7 +563,7 @@ void ctd_string_replace_inner(CTD_String* str, size_t start_position, size_t cou
     memcpy(str->data + start_position, replacement.data, replacement.length * sizeof(char));
     if (replacement.length > count)
     {
-        str->length += replacement.length - count;   
+        str->length += replacement.length - count;
     }
     else
     {
@@ -571,68 +571,8 @@ void ctd_string_replace_inner(CTD_String* str, size_t start_position, size_t cou
     }
 }
 
-void ctd_string_replace_all_inner(CTD_String* str, Find_Indices start_positions, const size_t count, const CTD_String_View replacement, Error* error)
-{
-    if (start_positions.length == 0)
-    {
-        return;
-    }
-    size_t length_difference;
-    if (replacement.length > count)
-    {
-        length_difference = replacement.length - count;
-    }
-    else
-    {
-        length_difference = count - replacement.length;
-    }
-    size_t modify_index_by = length_difference;
 
-    if (replacement.length > count)
-    {
-        for (size_t i = 0; i < start_positions.length - 1; i++)
-        {
-            ctd_string_replace_inner(str, start_positions.data[i], count, replacement, error);
-            if (error->error_type != NO_ERROR)
-            {
-                return;
-            }
-
-            start_positions.data[i + 1] += modify_index_by;
-            modify_index_by += length_difference;
-        }
-
-        ctd_string_replace_inner(str, start_positions.data[start_positions.length - 1], count, replacement, error);
-        if (error->error_type != NO_ERROR)
-        {
-            return;
-        }
-
-        str->length += start_positions.length * length_difference;
-    }
-    else
-    {
-        for (size_t i = 0; i < start_positions.length - 1; i++)
-        {
-            ctd_string_replace_inner(str, start_positions.data[i], count, replacement, error);
-            if (error->error_type != NO_ERROR)
-            {
-                return;
-            }
-
-            start_positions.data[i + i] -= modify_index_by;
-            modify_index_by += length_difference;
-        }
-
-        ctd_string_replace_inner(str, start_positions.data[start_positions.length - 1], count, replacement, error);
-        if (error->error_type != NO_ERROR)
-        {
-            return;
-        }
-
-        str->length -= start_positions.length * length_difference;
-    }
-}
+CTD_String ctd_string_create_replace_all();
 
 CTD_Strings ctd_string_split_inner(const CTD_String_View str, const CTD_String_View delimiter, Error* error)
 {
