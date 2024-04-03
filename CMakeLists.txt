@@ -4,6 +4,11 @@ project(ctdlib C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(ctdlib src/main.c src/ctd_string.c src/misc_utils.c)
+add_executable(ctdlib
+    src/main.c 
+    src/ctd_string.c
+    src/misc_utils.c
+    src/allocator.c
+)
 
 target_include_directories(ctdlib PUBLIC include)
