@@ -18,7 +18,7 @@
     {                                                                                                                  \
         .value = value_param, .exists = true                                                                           \
     }
-#define NONE(typename) (option(typename)){0};
+#define NONE(typename) (option(typename)){0}
 #define IS_SOME(option_value) option_value.exists
 #define IS_NONE(option_value) !option_value.exists
 #define UNWRAP(option_value) option_value.exists ? option_value.value : abort(),
