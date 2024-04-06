@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <ctd_string.h>
 #include <allocator.h>
+#include <arena.h>
 #include <stdalign.h>
 #include <string.h>
 
@@ -20,23 +21,23 @@ int main()
 
     default_allocator lib_alloc = default_allocator_create();
     arena_context context = {0};
-    arena_allocator arena = arena_allocator_create(&context, 1024, &lib_alloc.internal_allocator);
-    char* stuff = arena.internal_allocator.allocate(arena.internal_allocator.context, 17 * sizeof(char), alignof(char));
+    arena_allocator arena = arena_allocator_create(&context, 1024, &lib_alloc.allocator);
+    char* stuff = arena.allocator.allocate(arena.allocator.context, 17 * sizeof(char), alignof(char));
     memcpy(stuff, "Hi there John!!\n", 17 * sizeof(char));
-    uint64_t* numbers = arena.internal_allocator.allocate(arena.internal_allocator.context, 3 * sizeof(uint64_t), alignof(uint64_t));
+    uint64_t* numbers = arena.allocator.allocate(arena.allocator.context, 3 * sizeof(uint64_t), alignof(uint64_t));
     numbers[0] = 3;
     numbers[1] = 18993;
     numbers[2] = 98;
     printf("%s", stuff);
     printf("%p\n", (void*)numbers);
-    arena.internal_allocator.reallocate(arena.internal_allocator.context, numbers, 3 * sizeof(uint64_t), 6 * sizeof(uint64_t), alignof(uint64_t));
+    arena.allocator.reallocate(arena.allocator.context, numbers, 3 * sizeof(uint64_t), 6 * sizeof(uint64_t), alignof(uint64_t));
     printf("%p\n", (void*)numbers);
 
     for (ptrdiff_t i = 0; i < 3; i++)
     {
-        printf("%lu\n", numbers[i]);
+        printf("%llu\n", numbers[i]);
     }
 
-    arena_allocator_destroy(&arena, &lib_alloc.internal_allocator);
+    arena_allocator_destroy(&arena, &lib_alloc.allocator);
     return 0;
 }
