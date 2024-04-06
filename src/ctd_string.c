@@ -399,6 +399,7 @@ void ctd_string_clear(CTD_String* str, Error* error)
     }
 
     memset(str->data, 0, str->length * sizeof(char));
+    str->length = 0;
 }
 
 inline bool ctd_string_is_empty_inner(const CTD_String_View str)
