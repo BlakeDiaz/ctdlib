@@ -1,476 +1,63 @@
-#include <error_message.h>
-#include <option.h>
-#include <stdlib.h>
+#include <ctd_string.h>
+#include <stdalign.h>
 #include <string.h>
 
-#include <internal_dyn_array.h>
-#include <misc_utils.h>
-#include <ctd_string.h>
+void ctd_string_builder_maybe_expand(ctd_string_builder* self, ptrdiff_t expand_by, Error* error);
+void ctd_string_builder_maybe_contract(ctd_string_builder* self, Error* error);
+void ctd_string_builder_resize(ctd_string_builder *self, ptrdiff_t new_capacity, Error* error);
 
-#include <generic_dynamic_array.h>
-
-#define CTD_DYNAMIC_ARRAY_TYPES(X)\
-X(CTD_String, string, __VA_ARGS__)\
-X(CTD_String_View, string_view, __VA_ARGS__)
-
-CTD_DYNAMIC_ARRAY_TYPES(DYNAMIC_ARRAY_TYPE_DECL)
-CTD_DYNAMIC_ARRAY_TYPES(DYNAMIC_ARRAY_FUNCTIONS_DECL)
-CTD_DYNAMIC_ARRAY_TYPES(DYNAMIC_ARRAY_IMPL)
-
-void ctd_string_resize(CTD_String* str, const ptrdiff_t new_capacity, Error* error);
-void ctd_string_maybe_expand(CTD_String* str, const ptrdiff_t expand_by, Error* error);
-void ctd_string_maybe_contract(CTD_String* str, Error* error);
-
-/**
- * Creates an empty CTD_String.
- * Data is allocated on the heap.
- *
- * @param capacity Initial capacity of CTD_String.
- * @param error Pointer to Error struct.
- * @return CTD_String.
- */
-CTD_String ctd_string_create(const ptrdiff_t capacity, Error* error)
+ctd_string ctd_string_create(ptrdiff_t length, allocator_t allocator, Error* error)
 {
-    CTD_String string = {0};
-    string.capacity = capacity;
-    string.data = malloc(capacity * sizeof(char));
-    if (string.data == NULL)
-    {
-        error->error_type = ALLOCATION_FAIL;
-        error->error_message = "Malloc Failed.";
-        
-        return (CTD_String) {0};
-    }
-
-    return string;
-}
-
-/**
- * Creates a CTD_String from a CTD_String_View.
- * Data is allocated on the heap.
- *
- * @param view CTD_String_View that data is copied from.
- * @param error Pointer to Error struct.
- * @return CTD_String.
- */
-CTD_String ctd_string_create_from_view(const CTD_String_View view, Error* error)
-{
-    CTD_String string = {.data = malloc(view.length * sizeof(char)), .length = view.length, .capacity = view.length};
-    if (string.data == NULL)
-    {
-        error->error_type = ALLOCATION_FAIL;
-        error->error_message = "Malloc Failed.";
-
-        return (CTD_String) {0};
-    }
-
-    memcpy(string.data, view.data, view.length * sizeof(char));
-
-    return string;
-}
-
-/**
- * Creates a CTD_String from a null terminated c string.
- * Data is allocated on the heap.
- *
- * @param c_string Null terminated c string that data is copied from.
- * @param error Pointer to Error struct.
- * @return CTD_String.
- */
-CTD_String ctd_string_create_from_c_string(const char* c_string, Error* error)
-{
-    if (c_string == NULL)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "C_string was NULL";
-
-        CTD_String empty = {0};
-        return empty;
-    }
-
-    ptrdiff_t new_string_length = strlen(c_string);
-    CTD_String new_string = {.data = malloc(new_string_length * sizeof(char)), .length = new_string_length, .capacity = new_string_length};
-    if (new_string.data == NULL)
-    {
-        error->error_type = ALLOCATION_FAIL;
-        error->error_message = "Malloc Failed.";
-
-        return (CTD_String) {0};
-    }
-
-    memcpy(new_string.data, c_string, new_string_length);
-
-    return new_string;
-}
-
-CTD_String ctd_string_create_from_char_ptr(const char* data, ptrdiff_t length, Error* error)
-{
+    char* data = allocator.allocate(allocator.context, length * sizeof(char), alignof(char));
     if (data == NULL)
     {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "C_string was NULL";
-
-        CTD_String empty = {0};
-        return empty;
-    }
-
-    CTD_String new_string = {.data = malloc(length * sizeof(char)), .length = length, .capacity = length};
-    if (new_string.data == NULL)
-    {
         error->error_type = ALLOCATION_FAIL;
-        error->error_message = "Malloc Failed.";
+        error->error_message = "Allocation of ctd_string failed.";
 
-        return (CTD_String) {0};
+        return (ctd_string) {0};
     }
 
-    memcpy(new_string.data, data, length);
-
-    return new_string;
+    return (ctd_string) {.data = data, .length = length};
 }
 
-/**
- * Copies a CTD_String.
- * Data is allocated on the heap.
- *
- * @param str CTD_String that data is copied from.
- * @param error Pointer to Error struct.
- * @return CTD_String.
- */
-CTD_String ctd_string_copy(const CTD_String str, Error* error)
+ctd_string ctd_string_span(char *beginning, char *end)
 {
-    CTD_String new_string = ctd_string_create(str.length, error);
-    if (error->error_type != NO_ERROR)
-    {
-        return (CTD_String) {0};
-    }
-
-    memcpy(new_string.data, str.data, str.length * sizeof(char));
-
-    return new_string;
+    return (ctd_string) {.data = beginning, .length = end - beginning};
 }
 
-/**
- * Copies a CTD_String from a CTD_String_View.
- * Data is allocated on the heap.
- *
- * @param str CTD_String_View that data is copied from.
- * @param error Pointer to Error struct.
- * @return CTD_String.
- */
-CTD_String ctd_string_copy_view(CTD_String_View str, Error* error)
-{
-    CTD_String new_string = ctd_string_create(str.length, error);
-    if (error->error_type != NO_ERROR)
-    {
-        return (CTD_String) {0};
-    }
-
-    memcpy(new_string.data, str.data, str.length * sizeof(char));
-
-    return new_string;
-}
-
-/**
- * Destroys a CTD_String.
- * Data is is freed and string is zeroed out, so it is equivalent to (CTD_String) {0}.
- *
- * @param str CTD_String to be destroyed.
- */
-void ctd_string_destroy(CTD_String* str)
-{
-    if (str->data != NULL)
-    {
-        free(str->data);
-    }
-    CTD_String empty = {0};
-    *str = empty;
-}
-
-/**
- * Creates a CTD_String_View from a section of a CTD_String.
- *
- * @param str CTD_String that view is taken from.
- * @param start_index Starting index of view. Inclusive.
- * @param end_index Ending index of view. Exclusive.
- * @param error Pointer to Error struct.
- * @return CTD_String_View.
- */
-CTD_String_View ctd_string_view_create(const CTD_String str, const ptrdiff_t start_index, const ptrdiff_t end_index, Error* error)
-{
-    if (start_index > end_index)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "Invalid Index: start index > end index";
-
-        CTD_String_View empty = {0};
-        return empty;
-    }
-
-    if (end_index > str.length)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "Invalid Index: end index exceeds length of string";
-
-        CTD_String_View empty = {0};
-        return empty;
-    }
-
-    CTD_String_View view = {.data = str.data + start_index, .length = end_index - start_index};
-
-    return view;
-}
-
-/**
- * Creates a CTD_String_View from a section of a null terminated c string.
- *
- * @param str Null terminated c string that view is taken from.
- * @param start_index Starting index of view. Inclusive.
- * @param end_index Ending index of view. Exclusive.
- * @param error Pointer to Error struct.
- * @return CTD_String_View.
- */
-CTD_String_View ctd_string_view_create_from_c_string(char* c_string, const ptrdiff_t start_index,
-                                                     const ptrdiff_t end_index, Error* error)
-{
-    if (start_index > end_index)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "Invalid Index: start index > end index";
-
-        CTD_String_View empty = {0};
-        return empty;
-    }
-    ptrdiff_t length = strlen(c_string);
-
-    if (end_index > length)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "Invalid Index: end index exceeds length of string";
-
-        CTD_String_View empty = {0};
-        return empty;
-    }
-
-    CTD_String_View view = {.data = c_string + start_index, .length = end_index - start_index};
-
-    return view;
-}
-
-inline CTD_String_View ctd_string_view_create_from_char_ptr(char* data, const ptrdiff_t length)
-{
-    return (CTD_String_View) {.data = data, .length = length};
-}
-
-/**
- * Concatenates CTD_Strings into a new CTD_String.
- *
- * @param a First string to be concatenated.
- * @param b Second string to be concatenated.
- * @param error Pointer to Error struct.
- * @return CTD_String.
- */
-CTD_String ctd_string_concat(const CTD_String a, const CTD_String b, Error* error)
-{
-    ptrdiff_t new_string_length = a.length + b.length;
-    CTD_String new_string = {0};
-    new_string.length = new_string_length;
-    new_string.capacity = new_string_length;
-    new_string.data = malloc(new_string_length);
-    if (new_string.data == NULL)
-    {
-        error->error_type = ALLOCATION_FAIL;
-        error->error_message = "Malloc Failed.";
-
-        CTD_String empty = {0};
-        return empty;
-    }
-
-    memcpy(new_string.data, a.data, a.length);
-    memcpy(new_string.data + a.length, b.data, b.length);
-
-    return new_string;
-}
-
-/**
- * Concatenates two CTD_String_Views into a new CTD_String.
- *
- * @param a First view to be concatenated.
- * @param b Second view to be concatenated.
- * @param error Pointer to Error struct.
- * @return CTD_String.
- */
-CTD_String ctd_string_concat_view(const CTD_String_View a, const CTD_String_View b, Error* error)
-{
-    ptrdiff_t new_string_length = a.length + b.length;
-    CTD_String new_string = {0};
-    new_string.length = new_string_length;
-    new_string.capacity = new_string_length;
-    new_string.data = malloc(new_string_length);
-    if (new_string.data == NULL)
-    {
-        error->error_type = ALLOCATION_FAIL;
-        error->error_message = "Malloc Failed.";
-
-        CTD_String empty = {0};
-        return empty;
-    }
-
-    memcpy(new_string.data, a.data, a.length);
-    memcpy(new_string.data + a.length, b.data, b.length);
-
-    return new_string;
-}
-
-void ctd_string_append_inner(CTD_String* str, CTD_String_View to_append, Error* error)
-{
-    if (str == NULL)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "CTD_String to append to was null";
-        return;
-    }
-
-    ctd_string_maybe_expand(str, to_append.length, error);
-    if (error->error_type != NO_ERROR)
-    {
-        return;
-    }
-
-    memcpy(str->data + str->length, to_append.data, to_append.length * sizeof(char));
-
-    str->length += to_append.length;
-}
-
-void ctd_string_insert_inner(CTD_String* str, CTD_String_View to_insert, const ptrdiff_t index, Error* error)
-{
-    if (str == NULL)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "CTD_String to append to was null";
-        return;
-    }
-    if (index > str->length)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "Invalid insert index";
-        return;
-    }
-    if (index == str->length)
-    {
-        ctd_string_append_inner(str, to_insert, error);
-        if (error->error_type != NO_ERROR)
-        {
-            return;
-        }
-    }
-
-    ctd_string_maybe_expand(str, to_insert.length, error);
-    if (error->error_type != NO_ERROR)
-    {
-        return;
-    }
-
-    // Move characters at and after index to the right to make room for the inserted text
-    // TODO replace w/ memmove
-    for (ptrdiff_t i = str->length - 1; i >= index; i--)
-    {
-        str->data[i + to_insert.length] = str->data[i];
-    }
-
-    memcpy(str->data + (index * sizeof(char)), to_insert.data, to_insert.length * sizeof(char));
-
-    str->length += to_insert.length;
-}
-
-/**
- * Clears the contents of a CTD_String.
- *
- * @param str CTD_String to be cleared.
- * @param error Pointer to Error struct.
- */
-void ctd_string_clear(CTD_String* str, Error* error)
-{
-    if (str == NULL)
-    {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "CTD_String to clear to was null";
-
-        return;
-    }
-
-    memset(str->data, 0, str->length * sizeof(char));
-    str->length = 0;
-}
-
-inline bool ctd_string_is_empty_inner(const CTD_String_View str)
-{
-    return str.length == 0;
-}
-
-bool ctd_string_equals_inner(const CTD_String_View a, const CTD_String_View b)
+bool ctd_string_equals(ctd_string a, ctd_string b)
 {
     if (a.length != b.length)
     {
         return false;
     }
-
-    for (int i = 0; i < a.length; i++)
+    for (ptrdiff_t i = 0; i < a.length; i++)
     {
         if (a.data[i] != b.data[i])
         {
             return false;
         }
     }
-
     return true;
 }
 
-/**
- * Checks if a substring is contained within a CTD_String_View.
- * Returns false if either string is empty.
- *
- * @param str CTD_String_View checked to see if substring resides in it
- * @param substring CTD_String possibly contained inside str.
- * @return true if the string is contained, false otherwise.
- *
- */
-bool ctd_string_contains_inner(const CTD_String_View str, const CTD_String_View substring)
+ptrdiff_t ctd_string_compare(ctd_string a, ctd_string b)
 {
-    if (ctd_string_is_empty(str) || ctd_string_is_empty(substring))
+    size_t min_length = min(a.length, b.length);
+    for (ptrdiff_t i = 0; i < min_length; i++)
     {
-        return false;
-    }
-    if (substring.length > str.length)
-    {
-        return false;
-    }
-
-    for (ptrdiff_t i = 0; i < str.length; i++)
-    {
-        // If this is true, there isn't enough room inside str to contain the substring
-        if (str.length - i < substring.length)
+        if (a.data[i] != b.data[i])
         {
-            return false;
-        }
-        // If this is true, then the substring can't start at this character, and we move onto the next one
-        if (str.data[i] != substring.data[0])
-        {
-            continue;
-        }
-
-        CTD_String_View str_view = {.data = str.data + i, .length = substring.length};
-        if (ctd_string_equals(str_view, substring))
-        {
-            return true;
+            return a.data[i] - b.data[i];
         }
     }
 
-    return false;
+    return a.length - b.length;
 }
 
-option(ptrdiff_t) ctd_string_find_inner(const CTD_String_View str, const CTD_String_View substring, ptrdiff_t starting_index, Error* error)
+option(ptrdiff_t) ctd_string_find(ctd_string str, ctd_string substring, ptrdiff_t start, Error* error)
 {
-    if (starting_index >= str.length)
+    if (start >= str.length)
     {
         error->error_type = INVALID_ARGUMENT;
         error->error_message = "Starting index was greater than or equal to string's length.";
@@ -478,16 +65,16 @@ option(ptrdiff_t) ctd_string_find_inner(const CTD_String_View str, const CTD_Str
         return NONE(ptrdiff_t);
     }
 
-    if (str.length - starting_index < substring.length)
+    if (str.length - start < substring.length)
     {
         return NONE(ptrdiff_t);
     }
-    if (ctd_string_is_empty(str) || substring.length == 0)
+    if (str.length == 0 || substring.length == 0)
     {
         return NONE(ptrdiff_t);
     }
 
-    for (ptrdiff_t i = starting_index; i < str.length; i++)
+    for (ptrdiff_t i = start; i <= str.length - substring.length; i++)
     {
         // If this is true, there isn't enough room inside str to contain the substring
         if (str.length - i < substring.length)
@@ -500,8 +87,8 @@ option(ptrdiff_t) ctd_string_find_inner(const CTD_String_View str, const CTD_Str
             continue;
         }
 
-        CTD_String_View str_view = {.data = str.data + i, .length = substring.length};
-        if (ctd_string_equals(str_view, substring))
+        ctd_string candidate = {.data = str.data + i, .length = substring.length};
+        if (ctd_string_equals(candidate, substring))
         {
             return SOME(ptrdiff_t, i);
         }
@@ -510,182 +97,72 @@ option(ptrdiff_t) ctd_string_find_inner(const CTD_String_View str, const CTD_Str
     return NONE(ptrdiff_t);
 }
 
-Find_Indices ctd_string_find_all_inner(const CTD_String_View str, const CTD_String_View delimiter, ptrdiff_t starting_index, Error* error)
+/**
+ * Finds the last instance of a substring in a string.
+ *
+ * @param str String to be searched.
+ * @param substring Substring to be found.
+ * @param end Where search ends. Exclusive.
+ * @param error Pointer to Error struct.
+ * @return
+ */
+option(ptrdiff_t) ctd_string_reverse_find(ctd_string str, ctd_string substring, ptrdiff_t end, Error* error)
 {
-    ctd_internal_dynamic_array(ptrdiff_t) indices = {.data = malloc(sizeof(ptrdiff_t)), .length = 0, .capacity = 1};
-    option(ptrdiff_t) index;
-
-    index = ctd_string_find_inner(str, delimiter, starting_index, error);
-    while (IS_SOME(index))
-    {
-        ctd_internal_dynamic_array_append(indices, ptrdiff_t, index.value, error);
-        if (error->error_type != NO_ERROR)
-        {
-            free(indices.data);
-            return (Find_Indices) {0};
-        }
-        starting_index += delimiter.length;
-        index = ctd_string_find_inner(str, delimiter, starting_index, error);
-    }
-
-    if (indices.length == 0)
-    {
-        free(indices.data);
-        return (Find_Indices) {0};
-    }
-
-    return (Find_Indices) {0};
-}
-
-void ctd_string_replace_inner(CTD_String* str, ptrdiff_t start_position, ptrdiff_t count, const CTD_String_View replacement, Error* error)
-{
-    if (start_position >= str->length)
+    if (end > str.length)
     {
         error->error_type = INVALID_ARGUMENT;
-        error->error_message = "Invalid start position";
+        error->error_message = "End was greater than string length in ctd_string_reverse_find";
 
-        return;
+        return NONE(ptrdiff_t);
     }
-    if (start_position + count > str->length)
+
+    if (end < substring.length)
     {
-        error->error_type = INVALID_ARGUMENT;
-        error->error_message = "Invalid start position and count.";
+        return NONE(ptrdiff_t);
+    }
+    if (str.length == 0 || substring.length == 0)
+    {
+        return NONE(ptrdiff_t);
+    }
+    ptrdiff_t beginning_index = end - substring.length;
 
-        return;
+    for (ptrdiff_t i = beginning_index; i >= 0; i--)
+    {
+        if (str.data[i] != substring.data[0])
+        {
+            continue;
+        }
+
+        ctd_string candidate = {.data = str.data + i, .length = substring.length};
+        if (ctd_string_equals(candidate, substring))
+        {
+            return SOME(ptrdiff_t, i);
+        }
     }
 
-    ctd_string_maybe_expand(str, replacement.length - count, error);
+    return NONE(ptrdiff_t);
+}
+
+uint64_t ctd_string_hash(ctd_string str)
+{
+    unsigned long hash = 5381;
+    int c;
+
+    for (ptrdiff_t i = 0; i < str.length; i++)
+    {
+        c = str.data[i];
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    }
+
+    return hash;
+}
+
+ctd_string ctd_string_remove_whitespace(ctd_string str, allocator_t allocator, Error* error)
+{
+    ctd_string modified_string = ctd_string_create(str.length, allocator, error);
     if (error->error_type != NO_ERROR)
     {
-        return;
-    }
-    ptrdiff_t bytes_to_move = (str->length - start_position - count) * sizeof(char);
-    memmove(str->data + start_position + replacement.length, str->data + start_position + count, bytes_to_move);
-    memcpy(str->data + start_position, replacement.data, replacement.length * sizeof(char));
-    if (replacement.length > count)
-    {
-        str->length += replacement.length - count;
-    }
-    else
-    {
-        str->length -= count - replacement.length;
-    }
-}
-
-
-CTD_String ctd_string_create_replace_all();
-
-CTD_Strings ctd_string_split_inner(const CTD_String_View str, const CTD_String_View delimiter, Error* error)
-{
-    if (str.length == 0)
-    {
-        return (CTD_Strings) {0};
-    }
-    if (delimiter.length == 0)
-    {
-        return (CTD_Strings) {0};
-    }
-
-    ctd_internal_dynamic_array(CTD_String) strings = {.data = malloc(sizeof(CTD_String)), .length = 0, .capacity = 1};
-
-    ptrdiff_t starting_index = 0;
-    option(ptrdiff_t) ending_index;
-    // This variable is here to run the loop one more time than otherwise in order to add the last string to our list
-    bool done = false;
-    while (!done)
-    {
-        ending_index = ctd_string_find(str, delimiter, starting_index, error);
-        if (IS_NONE(ending_index))
-        {
-            done = true;
-            ending_index.value = str.length;
-        }
-        CTD_String new_string = ctd_string_create_from_char_ptr(str.data + starting_index, ending_index.value - starting_index, error);
-        if (error->error_type != NO_ERROR)
-        {
-            free(strings.data);
-            return (CTD_Strings) {0};
-        }
-        ctd_internal_dynamic_array_append(strings, CTD_String, new_string, error);
-
-        starting_index = ending_index.value + delimiter.length;
-    }
-
-    if (strings.length == 0)
-    {
-        free(strings.data);
-        return (CTD_Strings) {0};
-    }
-
-    return (CTD_Strings) {.data = strings.data, .length = strings.length};
-}
-
-CTD_String_Views ctd_string_split_views_inner(const CTD_String_View str, const CTD_String_View delimiter, Error* error)
-{
-    if (str.length == 0)
-    {
-        return (CTD_String_Views) {0};
-    }
-    if (delimiter.length == 0)
-    {
-        return (CTD_String_Views) {0};
-    }
-
-    ctd_internal_dynamic_array(CTD_String_View) strings = {.data = malloc(sizeof(CTD_String_View)), .length = 0, .capacity = 1};
-
-    ptrdiff_t starting_index = 0;
-    option(ptrdiff_t) ending_index;
-    // This variable is here to run the loop one more time than otherwise in order to add the last string to our list
-    bool done = false;
-    while (!done)
-    {
-        ending_index = ctd_string_find(str, delimiter, starting_index, error);
-        if (IS_NONE(ending_index))
-        {
-            done = true;
-            ending_index.value = str.length;
-        }
-        CTD_String_View new_string = to_view(str.data + starting_index, ending_index.value - starting_index);
-        if (error->error_type != NO_ERROR)
-        {
-            free(strings.data);
-            return (CTD_String_Views) {0};
-        }
-        ctd_internal_dynamic_array_append(strings, CTD_String_View, new_string, error);
-
-        starting_index = ending_index.value + delimiter.length;
-    }
-
-    if (strings.length == 0)
-    {
-        free(strings.data);
-        return (CTD_String_Views) {0};
-    }
-
-    return (CTD_String_Views) {.data = strings.data, .length = strings.length};
-}
-
-char* ctd_string_to_c_string_inner(CTD_String_View str, Error* error)
-{
-    char* c_string = malloc(str.length + 1);
-    if (c_string == NULL)
-    {
-        error->error_type = ALLOCATION_FAIL;
-        error->error_message = "Malloc Failed";
-
-        return NULL;
-    }
-    memcpy(c_string, str.data, str.length * sizeof(char));
-    c_string[str.length] = '\0';
-    return c_string;
-}
-
-CTD_String ctd_string_remove_whitespace_inner(CTD_String_View str, Error* error)
-{
-    CTD_String modified_string = ctd_string_create(str.length, error);
-    if (error->error_type != NO_ERROR)
-    {
-        return (CTD_String) {0};
+        return (ctd_string) {0};
     }
     ptrdiff_t i = 0, j = 0;
     char expression_char;
@@ -717,80 +194,347 @@ CTD_String ctd_string_remove_whitespace_inner(CTD_String_View str, Error* error)
     return modified_string;
 }
 
-/**
- *
- */
 
-/*
- * --------------------------------------------------------------------------------
- * | Private Functions                                                            |
- * --------------------------------------------------------------------------------
- */
-
-/**
- * Expands a CTD_String if the string cannot fit a certain amount of characters.
- * The string's capacity will either be expanded by [capacity * 2 + 1], or [length + expand_by], choosing whichever
- * option is greater.
- *
- * @param str CTD_String to possibly be expanded.
- * @param expand_by The amount of characters that will be added to str.
- * @param error Pointer to Error struct.
- */
-void ctd_string_maybe_expand(CTD_String* str, ptrdiff_t expand_by, Error* error)
+ctd_string ctd_string_copy(ctd_string str, allocator_t allocator, Error* error)
 {
-    if (str->length + expand_by >= str->capacity)
+    char *data = allocator.allocate(allocator.context, str.length * sizeof(char), alignof(char));
+    if (data == NULL)
     {
-        ctd_string_resize(str, max(str->length + expand_by, str->capacity * 2 + 1), error);
+        error->error_type = ALLOCATION_FAIL;
+        error->error_message = "Allocation of ctd_string failed.";
+
+        return (ctd_string) {0};
     }
+    memcpy(data, str.data, str.length);
+
+    return (ctd_string){.data = data, .length = str.length};
+}
+
+char* ctd_string_to_c_string(ctd_string str, allocator_t allocator, Error* error)
+{
+    char* data = allocator.allocate(allocator.context, (str.length + 1) * sizeof(char), alignof(char));
+    if (data == NULL)
+    {
+        error->error_type = ALLOCATION_FAIL;
+        error->error_message = "Allocation of ctd_string failed.";
+
+        return NULL;
+    }
+    memcpy(data, str.data, str.length);
+    data[str.length + 1] = '\0';
+
+    return data;
+}
+
+ctd_string_builder ctd_string_builder_create(ptrdiff_t capacity, allocator_t* allocator, Error* error)
+{
+    char *data = allocator->allocate(allocator->context, capacity, alignof(char));
+    if (data == NULL)
+    {
+        error->error_type = ALLOCATION_FAIL;
+        error->error_message = "Allocation of ctd_string_builder failed.";
+
+        return (ctd_string_builder) {0};
+    }
+
+    return (ctd_string_builder){.data = data, .length = 0, .capacity = capacity, .allocator = allocator};
+}
+
+void ctd_string_builder_push_back(ctd_string_builder* self, char c, Error* error)
+{
+    if (self == NULL)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Ctd_string_builder was NULL";
+
+        return;
+    }
+    ctd_string_builder_maybe_expand(self, 1, error);
+    if (error->error_type != NO_ERROR)
+    {
+        return;
+    }
+    self->data[self->length] = c;
+    self->length++;
+}
+
+void ctd_string_builder_pop_back(ctd_string_builder* self, Error* error)
+{
+    if (self == NULL)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Ctd_string_builder was NULL";
+
+        return;
+    }
+    if (self->length == 0)
+    {
+        return;
+    }
+
+    self->data[self->length - 1] = 0;
+    self->length--;
+    ctd_string_builder_maybe_contract(self, error);
+}
+
+void ctd_string_builder_append(ctd_string_builder *self, ctd_string str, Error* error)
+{
+    if (self == NULL)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Ctd_string_builder was NULL";
+
+        return;
+    }
+    ctd_string_builder_maybe_expand(self, str.length, error);
+    if (error->error_type != NO_ERROR)
+    {
+        return;
+    }
+
+    memcpy(self->data + self->length, str.data, str.length);
+    self->length += str.length;
+}
+
+void ctd_string_builder_insert(ctd_string_builder *self, ctd_string str, ptrdiff_t index, Error* error)
+{
+    if (self == NULL)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Ctd_string_builder was NULL";
+
+        return;
+    }
+    if (index > self->length)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Index to append at was > ctd_string_builder's length";
+    }
+    if (index == self->length)
+    {
+        ctd_string_builder_append(self, str, error);
+        return;
+    }
+
+    ctd_string_builder_maybe_expand(self, str.length, error);
+    if (error->error_type != NO_ERROR)
+    {
+        return;
+    }
+    memmove(self->data + index + str.length, self->data + index, (self->length - index) * sizeof(char));
+    memcpy(self->data + index, str.data, str.length * sizeof(char));
+
+    self->length += str.length;
+}
+
+void ctd_string_builder_remove(ctd_string_builder* self, ptrdiff_t index, ptrdiff_t length, Error* error)
+{
+    if (self == NULL)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Ctd_string_builder was NULL";
+
+        return;
+    }
+
+    ptrdiff_t bytes_to_move = (self->length - index - length) * sizeof(char);
+    if (bytes_to_move < 0)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Index + length > ctd_string_builder's length in remove method.";
+
+        return;
+    }
+
+    memset(self->data + index, 0, length * sizeof(char));
+    memmove(self->data + index, self->data + index + length, bytes_to_move);
+    self->length -= length;
+    ctd_string_builder_maybe_contract(self, error);
 }
 
 /**
- * Contracts a CTD_String if the string isn't using a majority of it's capacity.
- * Specifically, it will contract to 1/2 of its current capacity if its length is less than 1/4 of its capacity.
+ * Replace a sequence of characters with a string.
  *
- * @param str
- * @param error
+ * @param self String builder.
+ * @param replacement String to be inserted.
+ * @param index Starting index of sequence of characters to be removed. Inclusive.
+ * @param length Number of characters to be removed.
+ * @param error Pointer to Error struct.
  */
-void string_maybe_contract(CTD_String* str, Error* error)
+void ctd_string_builder_replace_at(ctd_string_builder* self, ctd_string replacement, ptrdiff_t index, ptrdiff_t length, Error* error)
 {
-    if (str->length < str->capacity / 4)
+    if (self == NULL)
     {
-        ctd_string_resize(str, str->capacity / 2, error);
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Ctd_string_builder was NULL";
+
+        return;
     }
+
+    ptrdiff_t movement_index = index + length;
+    ptrdiff_t bytes_to_move = (self->length - index - length) * sizeof(char);
+    if (bytes_to_move < 0)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Index + length > ctd_string_builder's length in remove method.";
+
+        return;
+    }
+
+    ptrdiff_t length_difference = replacement.length - length;
+    ctd_string_builder_maybe_expand(self, length_difference, error);
+    if (error->error_type != NO_ERROR)
+    {
+        return;
+    }
+
+    memmove(self->data + movement_index + length_difference, self->data + movement_index, bytes_to_move);
+    memcpy(self->data + index, replacement.data, replacement.length * sizeof(char));
+    self->length += length_difference;
 }
 
 /**
- * Resizes the capacity of a CTD_String.
  *
- * @param str CTD_String to be resized.
- * @param new_capacity The new capacity of str.
+ * @param self String builder to search.
+ * @param substring String to be searched for.
+ * @param start Beginning index to search from. Inclusive.
  * @param error Pointer to Error struct.
+ * @return
  */
-void ctd_string_resize(CTD_String* str, const ptrdiff_t new_capacity, Error* error)
+option(ptrdiff_t) ctd_string_builder_find(ctd_string_builder* self, ctd_string substring, ptrdiff_t start, Error* error)
 {
-    char* new_data = realloc(str->data, new_capacity);
+    ctd_string str= {.data = self->data, .length = self->length};
+
+    return ctd_string_find(str, substring, start, error);
+}
+
+/**
+ *
+ * @param self String builder to search.
+ * @param substring String to be searched for.
+ * @param end Index that searching won't go past. Exclusive.
+ * @param error Pointer ot Error struct.
+ * @return
+ */
+option(ptrdiff_t) ctd_string_builder_reverse_find(ctd_string_builder* self, ctd_string substring, ptrdiff_t end, Error* error)
+{
+    ctd_string str= {.data = self->data, .length = self->length};
+
+    return ctd_string_reverse_find(str, substring, end, error);
+}
+
+bool ctd_string_builder_contains(ctd_string_builder* self, ctd_string substring, Error* error)
+{
+    return IS_SOME(ctd_string_builder_find(self, substring, 0, error));
+}
+
+void ctd_string_builder_replace(ctd_string_builder* self, ctd_string substring, ctd_string replacement, ptrdiff_t start, Error* error)
+{
+    option(ptrdiff_t) index_option = ctd_string_builder_find(self, replacement, start, error);
+    if (error->error_type != NO_ERROR)
+    {
+        return;
+    }
+    if (IS_NONE(index_option))
+    {
+        return;
+    }
+    ptrdiff_t index = index_option.value;
+    ctd_string_builder_replace_at(self, replacement, index, substring.length, error);
+}
+
+void ctd_string_builder_replace_all(ctd_string_builder* self, ctd_string substring, ctd_string replacement, ptrdiff_t start, Error* error)
+{
+    option(ptrdiff_t) index_option = ctd_string_builder_find(self, replacement, start, error);
+    while (IS_SOME(index_option) && error->error_type == NO_ERROR)
+    {
+        ptrdiff_t index = index_option.value;
+        ctd_string_builder_replace_at(self, replacement, index, substring.length, error);
+        index_option = ctd_string_builder_find(self, replacement, index + replacement.length, error);
+    }
+}
+
+void ctd_string_builder_reverse(ctd_string_builder* self)
+{
+    ptrdiff_t i = 0;
+    ptrdiff_t opposite_index = self->length - 1;
+    char temp;
+    while(i < opposite_index)
+    {
+        temp = self->data[i];
+        self->data[i] = self->data[opposite_index];
+        self->data[opposite_index] = temp;
+
+        i++;
+        opposite_index--;
+    }
+}
+
+void ctd_string_builder_clear(ctd_string_builder* self)
+{
+    memset(self->data, 0, self->length * sizeof(char));
+    self->length = 0;
+}
+
+
+ctd_string ctd_string_builder_to_substring(ctd_string_builder *self, ptrdiff_t index, ptrdiff_t length,
+                                           allocator_t allocator, Error* error)
+{
+    char *data = allocator.allocate(allocator.context, length, alignof(char));
+    if (data == NULL)
+    {
+        error->error_type = ALLOCATION_FAIL;
+        error->error_message = "Allocation of ctd_string failed.";
+
+        return (ctd_string) {0};
+    }
+    memcpy(data, self->data + index, length * sizeof(char));
+
+    return (ctd_string){.data = data, .length = length};
+}
+
+ctd_string ctd_string_builder_to_string(ctd_string_builder *self, allocator_t allocator, Error* error)
+{
+    char *data = allocator.allocate(allocator.context, self->length, alignof(char));
+    if (data == NULL)
+    {
+        error->error_type = ALLOCATION_FAIL;
+        error->error_message = "Allocation of ctd_string failed.";
+
+        return (ctd_string) {0};
+    }
+    memcpy(data, self->data, self->length * sizeof(char));
+
+    return (ctd_string){.data = data, .length = self->length};
+}
+
+void ctd_string_builder_maybe_expand(ctd_string_builder* self, ptrdiff_t expand_by, Error* error)
+{
+    if (self->length + expand_by >= self->capacity)
+    {
+        ctd_string_builder_resize(self, max(self->length + expand_by, self->capacity * 2), error);
+    }
+}
+
+void ctd_string_builder_maybe_contract(ctd_string_builder* self, Error* error)
+{
+    if (self->length <= self->capacity / 4)
+    {
+        ctd_string_builder_resize(self, self->capacity / 2, error);
+    }
+}
+
+void ctd_string_builder_resize(ctd_string_builder *self, ptrdiff_t new_capacity, Error* error)
+{
+    char* new_data = self->allocator->reallocate(self->allocator->context, self->data, self->capacity, new_capacity, alignof(char));
     if (new_data == NULL)
     {
         error->error_type = ALLOCATION_FAIL;
-        error->error_message = "Realloc Failed.";
+        error->error_message = "Failed to realloc ctd_string_builder";
+
         return;
     }
-    str->capacity = new_capacity;
-    str->data = new_data;
-}
 
-
-inline CTD_String_View ctd_string_view_create_from_full_string_(const CTD_String str)
-{
-    return (CTD_String_View) {.data = str.data, .length = str.length};
-}
-
-inline CTD_String_View ctd_string_view_create_from_view_(const CTD_String_View view)
-{
-    return view;
-}
-
-inline CTD_String_View ctd_string_view_create_from_full_c_string_(char* c_str)
-{
-    return (CTD_String_View) {.data = c_str, .length = strlen(c_str)};
+    self->capacity = new_capacity;
+    self->data = new_data;
 }
