@@ -9,6 +9,7 @@ add_executable(ctdlib
     src/ctd_string.c
     src/misc_utils.c
     src/allocator.c
+    src/arena.c
 )
 
 target_include_directories(ctdlib PUBLIC include)

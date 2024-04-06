@@ -2,50 +2,19 @@
 #define ALLOCATOR_H
 #include <stddef.h>
 
-typedef struct allocator
+typedef struct allocator_t
 {
-    void* (*allocate)(void*, ptrdiff_t, ptrdiff_t);
-    void* (*reallocate)(void*, void*, ptrdiff_t, ptrdiff_t, ptrdiff_t);
-    void (*free)(void*, void*, ptrdiff_t);
+    void* (*allocate)(void*, ptrdiff_t, ptrdiff_t); // context, size, align
+    void* (*reallocate)(void*, void*, ptrdiff_t, ptrdiff_t, ptrdiff_t); // context, pointer, old_size, new_size, align
+    void (*free)(void*, void*, ptrdiff_t); // context, pointer, size
     void* context;
-} allocator;
+} allocator_t;
 
 typedef struct default_allocator
 {
-    allocator internal_allocator;
+    allocator_t allocator;
 } default_allocator;
 
-typedef struct arena_allocator
-{
-    allocator internal_allocator;
-} arena_allocator;
-
-typedef struct expandable_arena_allocator
-{
-    allocator internal_allocator;
-} expandable_arena_allocator;
-
-typedef struct arena_context
-{
-    ptrdiff_t length;
-    ptrdiff_t capacity;
-    char* data;
-} arena_context;
-
-typedef struct expandable_arena_context
-{
-    ptrdiff_t length;
-    ptrdiff_t capacity;
-    char* data;
-    allocator* alloc;
-} expandable_arena_context;
-
+extern default_allocator default_allocator_instance;
 default_allocator default_allocator_create();
-arena_allocator arena_allocator_create(arena_context* context, ptrdiff_t size, allocator* alloc);
-expandable_arena_allocator expandable_arena_allocator_create(expandable_arena_context* context, ptrdiff_t size,
-                                                             allocator* alloc);
-
-void arena_allocator_destroy(arena_allocator* self, allocator* alloc);
-void expandable_arena_allocator_destroy(expandable_arena_allocator* self);
-
 #endif
