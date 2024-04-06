@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #define option(typename) option_##typename
 
 #define OPTION_TYPE_DECL(type, typename)                                                                               \
@@ -21,7 +22,7 @@
 #define NONE(typename) (option(typename)){0}
 #define IS_SOME(option_value) option_value.exists
 #define IS_NONE(option_value) !option_value.exists
-#define UNWRAP(option_value) option_value.exists ? option_value.value : abort(),
+#define UNWRAP(option_value) option_value.exists ? option_value.value : (abort(), option_value.value)
 
 #define DEFAULT_OPTION_TYPES(X)                                                                                        \
     X(bool, bool)                                                                                                      \
