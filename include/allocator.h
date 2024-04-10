@@ -2,19 +2,19 @@
 #define ALLOCATOR_H
 #include <stddef.h>
 
-typedef struct allocator_t
+typedef struct ctd_allocator
 {
     void* (*allocate)(void*, ptrdiff_t, ptrdiff_t); // context, size, align
     void* (*reallocate)(void*, void*, ptrdiff_t, ptrdiff_t, ptrdiff_t); // context, pointer, old_size, new_size, align
     void (*free)(void*, void*, ptrdiff_t); // context, pointer, size
     void* context;
-} allocator_t;
+} ctd_allocator;
 
-typedef struct default_allocator
+typedef struct ctd_default_allocator
 {
-    allocator_t allocator;
-} default_allocator;
+    ctd_allocator allocator;
+} ctd_default_allocator;
 
-extern default_allocator default_allocator_instance;
-default_allocator default_allocator_create();
+extern ctd_default_allocator ctd_default_allocator_instance;
+ctd_default_allocator ctd_default_allocator_create();
 #endif

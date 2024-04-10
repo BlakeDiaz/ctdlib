@@ -3,9 +3,10 @@
 #include <string.h>
 #include <stdalign.h>
 
-void* arena_allocate(void* context, ptrdiff_t size, ptrdiff_t align)
+// TODO maybe make size and count to overflow check?
+void* ctd_arena_allocate(void* context, ptrdiff_t size, ptrdiff_t align)
 {
-    arena_context* arena = context;
+    ctd_arena_context* arena = context;
 
     ptrdiff_t padding = -(uintptr_t)(arena->data + arena->length) & (align-1);
     ptrdiff_t available_space = arena->capacity - arena->length - padding;
@@ -18,9 +19,9 @@ void* arena_allocate(void* context, ptrdiff_t size, ptrdiff_t align)
     return ptr;
 }
 
-void* arena_reallocate(void* context, void* source, ptrdiff_t old_size, ptrdiff_t new_size, ptrdiff_t align)
+void* ctd_arena_reallocate(void* context, void* source, ptrdiff_t old_size, ptrdiff_t new_size, ptrdiff_t align)
 {
-    arena_context* arena = context;
+    ctd_arena_context* arena = context;
 
     ptrdiff_t padding = -(uintptr_t)(arena->data + arena->length) & (align-1);
     ptrdiff_t difference = new_size - old_size;
@@ -72,9 +73,9 @@ void* arena_reallocate(void* context, void* source, ptrdiff_t old_size, ptrdiff_
     }
 }
 
-void arena_free(void* context, void* block, ptrdiff_t size)
+void ctd_arena_free(void* context, void* block, ptrdiff_t size)
 {
-    arena_context* arena = (arena_context* )context;
+    ctd_arena_context* arena = (ctd_arena_context* )context;
     memset(block, 0, size);
     if (block == arena->data + arena->length - size)
     {
@@ -82,23 +83,29 @@ void arena_free(void* context, void* block, ptrdiff_t size)
     }
 }
 
-arena_allocator arena_allocator_create(arena_context* context, ptrdiff_t size, allocator_t* alloc)
+ctd_arena_allocator ctd_arena_allocator_create(ctd_arena_context* context, ptrdiff_t size, ctd_allocator* alloc)
 {
     context->data = alloc->allocate(alloc->context, size, alignof(char));
     context->capacity = size;
-    allocator_t allocator = {0};
-    allocator.allocate = arena_allocate;
-    allocator.reallocate = arena_reallocate;
-    allocator.free = arena_free;
+    ctd_allocator allocator = {0};
+    allocator.allocate = ctd_arena_allocate;
+    allocator.reallocate = ctd_arena_reallocate;
+    allocator.free = ctd_arena_free;
     allocator.context = context;
 
-    return (arena_allocator){.allocator = allocator};
+    return (ctd_arena_allocator){.allocator = allocator};
 }
 
-void arena_allocator_destroy(arena_allocator* self, allocator_t* allocator)
+/**
+ * Destroys and frees the memory inside an allocator.
+ *
+ * @param self The allocator you want to destroy.
+ * @param allocator The allocator you created self with.
+ */
+void ctd_arena_allocator_destroy(ctd_arena_allocator* self, ctd_allocator* allocator)
 {
-    arena_context* arena = self->allocator.context;
+    ctd_arena_context* arena = self->allocator.context;
     allocator->free(allocator->context, arena->data, arena->capacity);
-    *arena = (arena_context){0};
-    *self = (arena_allocator){0};
+    *arena = (ctd_arena_context){0};
+    *self = (ctd_arena_allocator){0};
 }

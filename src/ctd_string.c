@@ -6,7 +6,15 @@ void ctd_string_builder_maybe_expand(ctd_string_builder* self, ptrdiff_t expand_
 void ctd_string_builder_maybe_contract(ctd_string_builder* self, Error* error);
 void ctd_string_builder_resize(ctd_string_builder *self, ptrdiff_t new_capacity, Error* error);
 
-ctd_string ctd_string_create(ptrdiff_t length, allocator_t allocator, Error* error)
+/**
+ * Creates an empty string with a given length/capacity.
+ *
+ * @param length
+ * @param allocator
+ * @param error
+ * @return
+ */
+ctd_string ctd_string_create(ptrdiff_t length, ctd_allocator allocator, Error* error)
 {
     char* data = allocator.allocate(allocator.context, length * sizeof(char), alignof(char));
     if (data == NULL)
@@ -157,14 +165,14 @@ uint64_t ctd_string_hash(ctd_string str)
     return hash;
 }
 
-ctd_string ctd_string_remove_whitespace(ctd_string str, allocator_t allocator, Error* error)
+ctd_string ctd_string_remove_whitespace(ctd_string str, ctd_allocator allocator, Error* error)
 {
-    ctd_string modified_string = ctd_string_create(str.length, allocator, error);
-    if (error->error_type != NO_ERROR)
+    char* initial_buffer = allocator.allocate(allocator.context, str.length * sizeof(char), alignof(char));
+    if (initial_buffer == NULL)
     {
         return (ctd_string) {0};
     }
-    ptrdiff_t i = 0, j = 0;
+    ptrdiff_t length = 0, i = 0, j = 0;
     char expression_char;
     while (i < str.length)
     {
@@ -182,20 +190,29 @@ ctd_string ctd_string_remove_whitespace(ctd_string str, allocator_t allocator, E
         }
         default:
         {
-            modified_string.data[j] = expression_char;
-            modified_string.length++;
+            initial_buffer[j] = expression_char;
+            length++;
             j++;
             break;
         }
         }
         i++;
     }
+    ctd_string modified_string = ctd_string_create(length, allocator, error);
+    if (error->error_type != NO_ERROR)
+    {
+        allocator.free(allocator.context, initial_buffer, str.length);
+        return (ctd_string) {0};
+    }
+
+    memcpy(modified_string.data, initial_buffer, length * sizeof(char));
+    allocator.free(allocator.context, initial_buffer, str.length);
 
     return modified_string;
 }
 
 
-ctd_string ctd_string_copy(ctd_string str, allocator_t allocator, Error* error)
+ctd_string ctd_string_copy(ctd_string str, ctd_allocator allocator, Error* error)
 {
     char *data = allocator.allocate(allocator.context, str.length * sizeof(char), alignof(char));
     if (data == NULL)
@@ -210,7 +227,7 @@ ctd_string ctd_string_copy(ctd_string str, allocator_t allocator, Error* error)
     return (ctd_string){.data = data, .length = str.length};
 }
 
-char* ctd_string_to_c_string(ctd_string str, allocator_t allocator, Error* error)
+char* ctd_string_to_c_string(ctd_string str, ctd_allocator allocator, Error* error)
 {
     char* data = allocator.allocate(allocator.context, (str.length + 1) * sizeof(char), alignof(char));
     if (data == NULL)
@@ -226,7 +243,13 @@ char* ctd_string_to_c_string(ctd_string str, allocator_t allocator, Error* error
     return data;
 }
 
-ctd_string_builder ctd_string_builder_create(ptrdiff_t capacity, allocator_t* allocator, Error* error)
+void ctd_string_destroy(ctd_string* self, ctd_allocator allocator)
+{
+    allocator.free(allocator.context, self->data, self->length * sizeof(char));
+    *self = (ctd_string) {0};
+}
+
+ctd_string_builder ctd_string_builder_create(ptrdiff_t capacity, ctd_allocator* allocator, Error* error)
 {
     char *data = allocator->allocate(allocator->context, capacity, alignof(char));
     if (data == NULL)
@@ -445,12 +468,18 @@ void ctd_string_builder_replace(ctd_string_builder* self, ctd_string substring, 
 
 void ctd_string_builder_replace_all(ctd_string_builder* self, ctd_string substring, ctd_string replacement, ptrdiff_t start, Error* error)
 {
-    option(ptrdiff_t) index_option = ctd_string_builder_find(self, replacement, start, error);
-    while (IS_SOME(index_option) && error->error_type == NO_ERROR)
+    option(ptrdiff_t) index_option = ctd_string_builder_find(self, substring, start, error);
+    ptrdiff_t length_difference = replacement.length - substring.length;
+    ptrdiff_t index;
+    while (IS_SOME((index_option = ctd_string_builder_find(self, substring, start, error))) && error->error_type == NO_ERROR)
     {
-        ptrdiff_t index = index_option.value;
+        index = index_option.value;
         ctd_string_builder_replace_at(self, replacement, index, substring.length, error);
-        index_option = ctd_string_builder_find(self, replacement, index + replacement.length, error);
+        start = index + replacement.length;
+        if (start >= self->length + length_difference)
+        {
+            break;
+        }
     }
 }
 
@@ -478,7 +507,7 @@ void ctd_string_builder_clear(ctd_string_builder* self)
 
 
 ctd_string ctd_string_builder_to_substring(ctd_string_builder *self, ptrdiff_t index, ptrdiff_t length,
-                                           allocator_t allocator, Error* error)
+                                           ctd_allocator allocator, Error* error)
 {
     char *data = allocator.allocate(allocator.context, length, alignof(char));
     if (data == NULL)
@@ -493,7 +522,7 @@ ctd_string ctd_string_builder_to_substring(ctd_string_builder *self, ptrdiff_t i
     return (ctd_string){.data = data, .length = length};
 }
 
-ctd_string ctd_string_builder_to_string(ctd_string_builder *self, allocator_t allocator, Error* error)
+ctd_string ctd_string_builder_to_string(ctd_string_builder *self, ctd_allocator allocator, Error* error)
 {
     char *data = allocator.allocate(allocator.context, self->length, alignof(char));
     if (data == NULL)
@@ -506,6 +535,45 @@ ctd_string ctd_string_builder_to_string(ctd_string_builder *self, allocator_t al
     memcpy(data, self->data, self->length * sizeof(char));
 
     return (ctd_string){.data = data, .length = self->length};
+}
+
+/**
+ * Returns a span
+ * Note - if start == end, returns an empty string.
+ *
+ * @param self
+ * @param start Inclusive.
+ * @param end Exclusive.
+ * @param error
+ * @return
+ */
+ctd_string ctd_string_builder_to_span(ctd_string_builder *self, ptrdiff_t start, ptrdiff_t end, Error* error)
+{
+    if (start < 0 || end > self->length || start > end)
+    {
+        error->error_type = INVALID_ARGUMENT;
+        error->error_message = "Invalid start and/or end index for ctd_string_builder_to_span.";
+
+        return (ctd_string) {0};
+    }
+    if (start == end)
+    {
+        return (ctd_string) {0};
+    }
+
+    return (ctd_string) {.data = self->data + start, .length = end - start};
+}
+
+/**
+ * Destroys and frees a string builder.
+ * Note that the allocator itself is not destroyed. Make sure to keep a reference on hand if you need to use it after.
+ *
+ * @param self String builder to be destroyed.
+ */
+void ctd_string_builder_destroy(ctd_string_builder *self)
+{
+    self->allocator->free(self->allocator->context, self->data, self->capacity);
+    *self = (ctd_string_builder) {0};
 }
 
 void ctd_string_builder_maybe_expand(ctd_string_builder* self, ptrdiff_t expand_by, Error* error)
