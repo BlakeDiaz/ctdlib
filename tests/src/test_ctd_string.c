@@ -1,21 +1,8 @@
 #include <ctd_string.h>
-#include <allocator.h>
 #include <string.h>
+#include <test.h>
 
-#define RUN_TEST(method_name, status_variable, number_of_tests_failed) \
-printf("Test for %s: ", #method_name);\
-status_variable = test_##method_name();\
-if (status_variable)\
-{\
-    printf("\x1b[31m[Failed]\x1b[0m\n");                               \
-    number_of_tests_failed++;                                          \
-}\
-else\
-{\
-    printf( "\x1b[32m[Succeeded]\x1b[0m\n");\
-}
-
-int test_ctd_string_create_from_literal()
+static int test_ctd_string_create_from_literal()
 {
     ctd_string str_1 = ctd_string_create_from_literal("Hello there!");
     char* literal = "Hello there!";
@@ -31,7 +18,7 @@ int test_ctd_string_create_from_literal()
     return 0;
 }
 
-int test_ctd_string_span()
+static int test_ctd_string_span()
 {
     ctd_string str = ctd_string_create_from_literal("Hi there!");
     ctd_string span = ctd_string_span(str.data + 3, str.data + str.length - 1);
@@ -47,7 +34,7 @@ int test_ctd_string_span()
     return 0;
 }
 
-int test_ctd_string_equals()
+static int test_ctd_string_equals()
 {
     ctd_string str_1 = ctd_string_create_from_literal("Hello there!");
     ctd_string str_2 = ctd_string_create_from_literal("Hello there!");
@@ -69,7 +56,7 @@ int test_ctd_string_equals()
     return 0;
 }
 
-int test_ctd_string_compare()
+static int test_ctd_string_compare()
 {
     ctd_string str_1 = ctd_string_create_from_literal("Hi there!");
     ctd_string str_2 = ctd_string_create_from_literal("Hi there!-");
@@ -88,7 +75,7 @@ int test_ctd_string_compare()
     return 0;
 }
 
-int test_ctd_string_find()
+static int test_ctd_string_find()
 {
     Error error = {0};
     ctd_string str_1 = ctd_string_create_from_literal("Hi there!");
@@ -107,7 +94,7 @@ int test_ctd_string_find()
     return 0;
 }
 
-int test_ctd_string_reverse_find()
+static int test_ctd_string_reverse_find()
 {
     Error error = {0};
     ctd_string str_1 = ctd_string_create_from_literal("Hi there!");
@@ -126,7 +113,7 @@ int test_ctd_string_reverse_find()
     return 0;
 }
 
-int test_ctd_string_remove_whitespace()
+static int test_ctd_string_remove_whitespace()
 {
     Error error = {0};
     ctd_default_allocator allocator = ctd_default_allocator_create();
@@ -153,7 +140,7 @@ int test_ctd_string_remove_whitespace()
     return 0;
 }
 
-int test_ctd_string_copy()
+static int test_ctd_string_copy()
 {
     Error error = {0};
     ctd_default_allocator default_allocator = ctd_default_allocator_create();
@@ -176,7 +163,7 @@ int test_ctd_string_copy()
     return 0;
 }
 
-int test_ctd_string_to_c_string()
+static int test_ctd_string_to_c_string()
 {
     Error error = {0};
     ctd_default_allocator default_allocator = ctd_default_allocator_create();
@@ -209,7 +196,7 @@ cleanup:
 
 }
 
-int test_ctd_string_builder_push_back()
+static int test_ctd_string_builder_push_back()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -253,7 +240,7 @@ cleanup:
     return 1;
 }
 
-int test_ctd_string_builder_pop_back()
+static int test_ctd_string_builder_pop_back()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -291,7 +278,7 @@ cleanup:
     return 1;
 }
 
-int test_ctd_string_builder_append()
+static int test_ctd_string_builder_append()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -351,7 +338,7 @@ cleanup:
     return 1;
 }
 
-int test_ctd_string_builder_insert()
+static int test_ctd_string_builder_insert()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -395,7 +382,7 @@ cleanup:
     return 1;
 }
 
-int test_ctd_string_builder_remove()
+static int test_ctd_string_builder_remove()
 {
 
     Error error = {0};
@@ -445,7 +432,7 @@ cleanup:
     return 1;
 }
 
-int test_ctd_string_builder_find()
+static int test_ctd_string_builder_find()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -520,7 +507,7 @@ cleanup:
     return 1;
 }
 
-int test_ctd_string_builder_contains()
+static int test_ctd_string_builder_contains()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -559,7 +546,8 @@ cleanup:
     ctd_string_builder_destroy(&builder);
     return 1;
 }
-int test_ctd_string_builder_replace()
+
+static int test_ctd_string_builder_replace()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -569,7 +557,25 @@ int test_ctd_string_builder_replace()
         goto cleanup;
     }
     ctd_string str = ctd_string_create_from_literal("Hi there! there is a thing over there");
+    ctd_string search_1 = ctd_string_create_from_literal("there");
+    ctd_string replace_1 = ctd_string_create_from_literal("hhhh");
+    ctd_string compare_1 = ctd_string_create_from_literal("Hi hhhh! there is a thing over there");
+    ctd_string compare_2 = ctd_string_create_from_literal("Hi hhhh! there is a thing over hhhh");
+    ctd_string compare_3 = ctd_string_create_from_literal("Hi hhhh! hhhh is a thing over hhhh");
     ctd_string_builder_append(&builder, str, &error);
+    if (error.error_type != NO_ERROR) goto cleanup;
+
+    ctd_string_builder_replace(&builder, search_1, replace_1, 0, &error);
+    if (error.error_type != NO_ERROR || !ctd_string_equals(ctd_string_builder_to_span(&builder, 0, builder.length, &error), compare_1)) goto cleanup;
+
+    ctd_string_builder_replace(&builder, search_1, replace_1, 11, &error);
+    if (error.error_type != NO_ERROR || !ctd_string_equals(ctd_string_builder_to_span(&builder, 0, builder.length, &error), compare_2)) goto cleanup;
+
+    ctd_string_builder_replace(&builder, search_1, replace_1, 0, &error);
+    if (error.error_type != NO_ERROR || !ctd_string_equals(ctd_string_builder_to_span(&builder, 0, builder.length, &error), compare_3)) goto cleanup;
+
+    ctd_string_builder_replace(&builder, search_1, replace_1, 0, &error);
+    if (error.error_type != NO_ERROR || !ctd_string_equals(ctd_string_builder_to_span(&builder, 0, builder.length, &error), compare_3)) goto cleanup;
 
     ctd_string_builder_destroy(&builder);
     return 0;
@@ -577,7 +583,8 @@ cleanup:
     ctd_string_builder_destroy(&builder);
     return 1;
 }
-int test_ctd_string_builder_replace_all()
+
+static int test_ctd_string_builder_replace_all()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -619,7 +626,8 @@ cleanup:
     ctd_string_builder_destroy(&builder_2);
     return 1;
 }
-int test_ctd_string_builder_reverse()
+
+static int test_ctd_string_builder_reverse()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -647,7 +655,7 @@ cleanup:
     return 1;
 }
 
-int test_ctd_string_builder_clear()
+static int test_ctd_string_builder_clear()
 {
     Error error = {0};
     ctd_allocator allocator = ctd_default_allocator_create().allocator;
@@ -679,10 +687,11 @@ cleanup:
     return 1;
 }
 
-int main()
+void test_ctd_string_methods()
 {
     int status;
     uint32_t number_of_tests_failed = 0;
+    printf("---------- Begin ctd_string Test ----------\n");
     RUN_TEST(ctd_string_create_from_literal, status, number_of_tests_failed)
     RUN_TEST(ctd_string_span, status, number_of_tests_failed)
     RUN_TEST(ctd_string_equals, status, number_of_tests_failed)
@@ -699,7 +708,7 @@ int main()
     RUN_TEST(ctd_string_builder_remove, status, number_of_tests_failed)
     RUN_TEST(ctd_string_builder_find, status, number_of_tests_failed)
     RUN_TEST(ctd_string_builder_contains, status, number_of_tests_failed)
-    //RUN_TEST(ctd_string_builder_replace, status, number_of_tests_failed)
+    RUN_TEST(ctd_string_builder_replace, status, number_of_tests_failed)
     RUN_TEST(ctd_string_builder_replace_all, status, number_of_tests_failed)
     RUN_TEST(ctd_string_builder_reverse, status, number_of_tests_failed)
     RUN_TEST(ctd_string_builder_clear, status, number_of_tests_failed)
@@ -712,6 +721,5 @@ int main()
     {
         printf("\x1b[31m%u tests failed.\x1b[0m\n", number_of_tests_failed);
     }
-
-    return 0;
+    printf("---------- End ctd_string Test ----------\n");
 }

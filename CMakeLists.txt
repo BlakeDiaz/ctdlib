@@ -14,7 +14,9 @@ add_library(ctdlib
 target_include_directories(ctdlib PUBLIC include)
 
 add_executable(test
-    tests/main.c
+    tests/src/main.c
+    tests/src/test_ctd_string.c
 )
+target_include_directories(test PUBLIC tests/include)
 
 target_link_libraries(test ctdlib)
