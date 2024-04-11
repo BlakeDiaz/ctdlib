@@ -453,7 +453,7 @@ bool ctd_string_builder_contains(ctd_string_builder* self, ctd_string substring,
 
 void ctd_string_builder_replace(ctd_string_builder* self, ctd_string substring, ctd_string replacement, ptrdiff_t start, Error* error)
 {
-    option(ptrdiff_t) index_option = ctd_string_builder_find(self, replacement, start, error);
+    option(ptrdiff_t) index_option = ctd_string_builder_find(self, substring, start, error);
     if (error->error_type != NO_ERROR)
     {
         return;
