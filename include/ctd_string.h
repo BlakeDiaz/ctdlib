@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <allocator.h>
+#include <ctd_allocator.h>
 #include <misc_utils.h>
 #include <error_message.h>
 #include <option.h>

@@ -201,12 +201,12 @@ ctd_string ctd_string_remove_whitespace(ctd_string str, ctd_allocator allocator,
     ctd_string modified_string = ctd_string_create(length, allocator, error);
     if (error->error_type != NO_ERROR)
     {
-        allocator.free(allocator.context, initial_buffer, str.length);
+        allocator.deallocate(allocator.context, initial_buffer, str.length);
         return (ctd_string) {0};
     }
 
     memcpy(modified_string.data, initial_buffer, length * sizeof(char));
-    allocator.free(allocator.context, initial_buffer, str.length);
+    allocator.deallocate(allocator.context, initial_buffer, str.length);
 
     return modified_string;
 }
@@ -245,7 +245,7 @@ char* ctd_string_to_c_string(ctd_string str, ctd_allocator allocator, Error* err
 
 void ctd_string_destroy(ctd_string* self, ctd_allocator allocator)
 {
-    allocator.free(allocator.context, self->data, self->length * sizeof(char));
+    allocator.deallocate(allocator.context, self->data, self->length * sizeof(char));
     *self = (ctd_string) {0};
 }
 
@@ -572,7 +572,7 @@ ctd_string ctd_string_builder_to_span(ctd_string_builder *self, ptrdiff_t start,
  */
 void ctd_string_builder_destroy(ctd_string_builder *self)
 {
-    self->allocator->free(self->allocator->context, self->data, self->capacity);
+    self->allocator->deallocate(self->allocator->context, self->data, self->capacity);
     *self = (ctd_string_builder) {0};
 }
 

@@ -187,11 +187,11 @@ static int test_ctd_string_to_c_string()
         }
     }
 
-    default_allocator.allocator.free(default_allocator.allocator.context, c_string, (str.length + 1) * sizeof(char));
+    default_allocator.allocator.deallocate(default_allocator.allocator.context, c_string, (str.length + 1) * sizeof(char));
     return 0;
 
 cleanup:
-    default_allocator.allocator.free(default_allocator.allocator.context, c_string, (str.length + 1) * sizeof(char));
+    default_allocator.allocator.deallocate(default_allocator.allocator.context, c_string, (str.length + 1) * sizeof(char));
     return 1;
 
 }
@@ -687,7 +687,7 @@ cleanup:
     return 1;
 }
 
-void test_ctd_string_methods()
+void test_ctd_string_functions()
 {
     int status;
     uint32_t number_of_tests_failed = 0;
@@ -721,5 +721,5 @@ void test_ctd_string_methods()
     {
         printf("\x1b[31m%u tests failed.\x1b[0m\n", number_of_tests_failed);
     }
-    printf("---------- End ctd_string Test ----------\n");
+    printf("---------- End ctd_string Test ----------\n\n");
 }

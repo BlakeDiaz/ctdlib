@@ -1,4 +1,4 @@
-#include <arena.h>
+#include <ctd_arena.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdalign.h>
@@ -73,7 +73,7 @@ void* ctd_arena_reallocate(void* context, void* source, ptrdiff_t old_size, ptrd
     }
 }
 
-void ctd_arena_free(void* context, void* block, ptrdiff_t size)
+void ctd_arena_deallocate(void* context, void* block, ptrdiff_t size)
 {
     ctd_arena_context* arena = (ctd_arena_context* )context;
     memset(block, 0, size);
@@ -83,17 +83,20 @@ void ctd_arena_free(void* context, void* block, ptrdiff_t size)
     }
 }
 
-ctd_arena_allocator ctd_arena_allocator_create(ctd_arena_context* context, ptrdiff_t size, ctd_allocator* alloc)
+ctd_arena_allocator ctd_arena_allocator_create(ptrdiff_t size, ctd_allocator* alloc)
 {
+    ctd_arena_allocator arena = {0};
+    ctd_arena_context* context = alloc->allocate(alloc->context, sizeof(ctd_arena_context), alignof(ctd_arena_context));
+    if (context == NULL) return arena;
     context->data = alloc->allocate(alloc->context, size, alignof(char));
+    if (context->data == NULL) return arena;
     context->capacity = size;
-    ctd_allocator allocator = {0};
-    allocator.allocate = ctd_arena_allocate;
-    allocator.reallocate = ctd_arena_reallocate;
-    allocator.free = ctd_arena_free;
-    allocator.context = context;
+    arena.allocator.allocate = ctd_arena_allocate;
+    arena.allocator.reallocate = ctd_arena_reallocate;
+    arena.allocator.deallocate = ctd_arena_deallocate;
+    arena.allocator.context = context;
 
-    return (ctd_arena_allocator){.allocator = allocator};
+    return arena;
 }
 
 /**
@@ -105,7 +108,8 @@ ctd_arena_allocator ctd_arena_allocator_create(ctd_arena_context* context, ptrdi
 void ctd_arena_allocator_destroy(ctd_arena_allocator* self, ctd_allocator* allocator)
 {
     ctd_arena_context* arena = self->allocator.context;
-    allocator->free(allocator->context, arena->data, arena->capacity);
+    allocator->deallocate(allocator->context, arena->data, arena->capacity);
+    allocator->deallocate(allocator->context, arena, sizeof(ctd_arena_context));
     *arena = (ctd_arena_context){0};
     *self = (ctd_arena_allocator){0};
 }

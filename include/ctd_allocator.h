@@ -6,7 +6,7 @@ typedef struct ctd_allocator
 {
     void* (*allocate)(void*, ptrdiff_t, ptrdiff_t); // context, size, align
     void* (*reallocate)(void*, void*, ptrdiff_t, ptrdiff_t, ptrdiff_t); // context, pointer, old_size, new_size, align
-    void (*free)(void*, void*, ptrdiff_t); // context, pointer, size
+    void (*deallocate)(void*, void*, ptrdiff_t); // context, pointer, size
     void* context;
 } ctd_allocator;
 

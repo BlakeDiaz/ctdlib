@@ -1,6 +1,6 @@
 #ifndef ARENA_H
 #define ARENA_H
-#include <allocator.h>
+#include <ctd_allocator.h>
 
 typedef struct ctd_arena_allocator
 {
@@ -27,7 +27,7 @@ typedef struct ctd_expandable_arena_context
     ctd_allocator* allocator;
 } ctd_expandable_arena_context;
 
-ctd_arena_allocator ctd_arena_allocator_create(ctd_arena_context* context, ptrdiff_t size, ctd_allocator* alloc);
+ctd_arena_allocator ctd_arena_allocator_create(ptrdiff_t size, ctd_allocator* alloc);
 ctd_expandable_arena_allocator ctd_expandable_arena_allocator_create(ctd_expandable_arena_context* context, ptrdiff_t size,
                                                                ctd_allocator* allocator);
 
