@@ -32,7 +32,7 @@ static void* ctd_arena_allocator_reallocate(void* context, void* source, const p
     // If there isn't any change, simply return the source pointer
     if (difference == 0)
     {
-        return NULL;
+        return source;
     }
     // If the reallocated object is at the end of the arena, we can simply change the position of arena->beginning by difference
     if (arena->data + arena->length - old_size == source)
