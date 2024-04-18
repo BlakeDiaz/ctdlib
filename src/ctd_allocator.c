@@ -1,26 +1,26 @@
 #include <stdlib.h>
 #include <ctd_allocator.h>
 
-void* ctd_malloc(void* context, ptrdiff_t size, ptrdiff_t align)
+static void* ctd_malloc(void* context, ptrdiff_t size, ptrdiff_t align)
 {
     (void)context;
     return malloc(size);
 }
 
-void* ctd_calloc(void* context, ptrdiff_t size, ptrdiff_t count, ptrdiff_t align)
+static void* ctd_calloc(void* context, ptrdiff_t size, ptrdiff_t count, ptrdiff_t align)
 {
     (void)context;
     return calloc(count, size);
 }
 
-void* ctd_realloc(void* context, void* source, ptrdiff_t old_size, ptrdiff_t new_size, ptrdiff_t align)
+static void* ctd_realloc(void* context, void* source, ptrdiff_t old_size, ptrdiff_t new_size, ptrdiff_t align)
 {
     (void)context;
     (void)old_size;
     return realloc(source, new_size);
 }
 
-void ctd_free(void* context, void* block, ptrdiff_t size)
+static void ctd_free(void* context, void* block, ptrdiff_t size)
 {
     (void)context;
     (void)size;

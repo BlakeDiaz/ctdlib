@@ -2,9 +2,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdalign.h>
+#include <ctd_define.h>
 
 // TODO maybe make size and count to overflow check?
-void* ctd_arena_allocate(void* context, ptrdiff_t size, ptrdiff_t align)
+static void* ctd_arena_allocator_allocate(void* context, ptrdiff_t size, ptrdiff_t align)
 {
     ctd_arena_context* arena = context;
 
@@ -19,15 +20,16 @@ void* ctd_arena_allocate(void* context, ptrdiff_t size, ptrdiff_t align)
     return ptr;
 }
 
-void* ctd_arena_reallocate(void* context, void* source, ptrdiff_t old_size, ptrdiff_t new_size, ptrdiff_t align)
+static void* ctd_arena_allocator_reallocate(void* context, void* source, const ptrdiff_t old_size, const ptrdiff_t new_size, const ptrdiff_t align)
 {
     ctd_arena_context* arena = context;
 
-    ptrdiff_t padding = -(uintptr_t)(arena->data + arena->length) & (align-1);
-    ptrdiff_t difference = new_size - old_size;
-    ptrdiff_t abs_difference = difference >= 0 ? difference : -difference;
-    ptrdiff_t available_space = arena->capacity - arena->length - padding;
+    const ptrdiff_t padding = -(uintptr_t)(arena->data + arena->length) & (align-1);
+    const ptrdiff_t difference = new_size - old_size;
+    const ptrdiff_t abs_difference = difference >= 0 ? difference : -difference;
+    const ptrdiff_t available_space = arena->capacity - arena->length - padding;
 
+    // If there isn't any change, simply return the source pointer
     if (difference == 0)
     {
         return NULL;
@@ -47,33 +49,26 @@ void* ctd_arena_reallocate(void* context, void* source, ptrdiff_t old_size, ptrd
 
         return source;
     }
-    /*
-        Otherwise,
-       If the object is shrinked, we zero out the memory but we don't change the position of arena->beginning
-       If the object is expanded, we move it to the front of the arena, and we change arena->beginning by new_size instead of difference
-    */
-    else
+    // Otherwise,
+    // If the object is shrinked, we zero out the memory but we don't change the position of arena->beginning
+    if (difference < 0)
     {
-        if (difference < 0)
-        {
-            memset(arena->data + arena->length + difference, 0, abs_difference);
-            return source;
-        }
-        else // difference > 0
-        {
-            if (available_space < new_size)
-            {
-                return NULL;
-            }
-            char* destination = arena->data + arena->length + padding;
-            memmove(destination, source, old_size);
-            arena->length += padding + new_size;
-            return destination;
-        }
+        memset(arena->data + arena->length + difference, 0, abs_difference);
+        return source;
     }
+
+    // If the object is expanded, we move it to the front of the arena, and we change arena->beginning by new_size instead of difference
+    if (available_space < new_size)
+    {
+        return NULL;
+    }
+    char* destination = arena->data + arena->length + padding;
+    memmove(destination, source, old_size);
+    arena->length += padding + new_size;
+    return destination;
 }
 
-void ctd_arena_deallocate(void* context, void* block, ptrdiff_t size)
+static void ctd_arena_allocator_deallocate(void* context, void* block, ptrdiff_t size)
 {
     ctd_arena_context* arena = (ctd_arena_context* )context;
     memset(block, 0, size);
@@ -91,9 +86,9 @@ ctd_arena_allocator ctd_arena_allocator_create(ptrdiff_t size, ctd_allocator* al
     context->data = alloc->allocate(alloc->context, size, alignof(char));
     if (context->data == NULL) return arena;
     context->capacity = size;
-    arena.allocator.allocate = ctd_arena_allocate;
-    arena.allocator.reallocate = ctd_arena_reallocate;
-    arena.allocator.deallocate = ctd_arena_deallocate;
+    arena.allocator.allocate = ctd_arena_allocator_allocate;
+    arena.allocator.reallocate = ctd_arena_allocator_reallocate;
+    arena.allocator.deallocate = ctd_arena_allocator_deallocate;
     arena.allocator.context = context;
 
     return arena;
