@@ -53,12 +53,21 @@ int test_ctd_arena_reallocate()
     const ctd_allocator arena = ctd_arena_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_arena_context* context = arena.context;
 
-    char* data = arena.allocate(context, 4 * sizeof(uint32_t), alignof(uint32_t));
+    char* data_1 = arena.allocate(context, 4 * sizeof(uint32_t), alignof(uint32_t));
     ptrdiff_t initial_length = context->length;
-    char* new_data = arena.reallocate(context, data, 4 * sizeof(uint32_t), 8 * sizeof(uint32_t), alignof(uint32_t));
-    if (new_data == NULL) goto cleanup;
-    if (new_data != data) goto cleanup;
+
+    char* data_2 = arena.reallocate(context, data_1, 4 * sizeof(uint32_t), 8 * sizeof(uint32_t), alignof(uint32_t));
+    if (data_2 == NULL) goto cleanup;
+    if (data_2 != data_1) goto cleanup;
     if (context->length != initial_length + 4 * sizeof(uint32_t)) goto cleanup;
+
+    char* data_3 = arena.reallocate(context, data_2, 8 * sizeof(uint32_t), 2 * sizeof(uint32_t), alignof(uint32_t));
+    if (data_3 == NULL) goto cleanup;
+    if (data_3 != data_2) goto cleanup;
+    if (context->length != initial_length - 2 * sizeof(uint32_t)) goto cleanup;
+
+    char* data_4 = arena.reallocate(context, data_3, 2 * sizeof(uint32_t), 100 * sizeof(uint32_t), alignof(uint32_t));
+    if (data_4 != NULL) goto cleanup;
 
     heap_allocator.deallocate(heap_allocator.context, context->data, 100 * sizeof(char));
     heap_allocator.deallocate(heap_allocator.context, context, sizeof(ctd_arena_context));
