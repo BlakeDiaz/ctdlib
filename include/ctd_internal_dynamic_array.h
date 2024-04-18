@@ -1,5 +1,5 @@
-#ifndef PROGRAM_INTERNAL_DYN_ARRAY_H
-#define PROGRAM_INTERNAL_DYN_ARRAY_H
+#ifndef CTD_INTERNAL_DYNAMIC_ARRAY_H
+#define CTD_INTERNAL_DYNAMIC_ARRAY_H
 #include <stddef.h>
 
 #define ctd_internal_dynamic_array(type)                                                                               \
@@ -38,4 +38,4 @@
         }                                                                                                              \
     } while (0)
 
-#endif // PROGRAM_INTERNAL_DYN_ARRAY_H
+#endif // CTD_INTERNAL_DYNAMIC_ARRAY_H

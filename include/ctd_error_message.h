@@ -1,5 +1,5 @@
-#ifndef ERROR_MESSAGE_H
-#define ERROR_MESSAGE_H
+#ifndef CTD_ERROR_MESSAGE_H
+#define CTD_ERROR_MESSAGE_H
 
 #include <stdio.h>
 
@@ -12,28 +12,28 @@ typedef enum
     MISC_ERROR,
 } ERROR_TYPE;
 
-typedef struct Error
+typedef struct ctd_error
 {
     ERROR_TYPE error_type;
     const char* error_message;
-} Error;
+} ctd_error;
 
-#define ERROR_CHECK(error)                                                                                             \
+#define CTD_ERROR_CHECK(error)                                                                                             \
     if (error.error_type != NO_ERROR)                                                                                  \
     {                                                                                                                  \
         printf("%s\n", error.error_message);                                                                           \
     }
-#define ERROR_ABORT(error) \
+#define CTD_ERROR_ABORT(error) \
     if (error.error_type != NO_ERROR) \
     {                         \
         fprintf(stderr, "%s\n", error.error_message); \
         abort();\
     }
 
-#define ERROR_PTR_ABORT(error_ptr) \
+#define CTD_ERROR_PTR_ABORT(error_ptr) \
     if (error->error_type != NO_ERROR) \
     {                         \
         fprintf(stderr, "%s\n", error->error_message); \
         abort();\
     }
-#endif // ERROR_MESSAGE_H
+#endif // CTD_ERROR_MESSAGE_H

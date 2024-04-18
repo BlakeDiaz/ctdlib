@@ -2,9 +2,9 @@
 #include <stdalign.h>
 #include <string.h>
 
-void ctd_string_builder_maybe_expand(ctd_string_builder* self, ptrdiff_t expand_by, Error* error);
-void ctd_string_builder_maybe_contract(ctd_string_builder* self, Error* error);
-void ctd_string_builder_resize(ctd_string_builder *self, ptrdiff_t new_capacity, Error* error);
+void ctd_string_builder_maybe_expand(ctd_string_builder* self, ptrdiff_t expand_by, ctd_error* error);
+void ctd_string_builder_maybe_contract(ctd_string_builder* self, ctd_error* error);
+void ctd_string_builder_resize(ctd_string_builder *self, ptrdiff_t new_capacity, ctd_error* error);
 
 /**
  * Creates an empty string with a given length/capacity.
@@ -14,7 +14,7 @@ void ctd_string_builder_resize(ctd_string_builder *self, ptrdiff_t new_capacity,
  * @param error
  * @return
  */
-ctd_string ctd_string_create(ptrdiff_t length, ctd_allocator allocator, Error* error)
+ctd_string ctd_string_create(ptrdiff_t length, ctd_allocator allocator, ctd_error* error)
 {
     char* data = allocator.allocate(allocator.context, length * sizeof(char), alignof(char));
     if (data == NULL)
@@ -51,7 +51,7 @@ bool ctd_string_equals(ctd_string a, ctd_string b)
 
 ptrdiff_t ctd_string_compare(ctd_string a, ctd_string b)
 {
-    size_t min_length = min(a.length, b.length);
+    size_t min_length = ctd_min(a.length, b.length);
     for (ptrdiff_t i = 0; i < min_length; i++)
     {
         if (a.data[i] != b.data[i])
@@ -63,7 +63,7 @@ ptrdiff_t ctd_string_compare(ctd_string a, ctd_string b)
     return a.length - b.length;
 }
 
-option(ptrdiff_t) ctd_string_find(ctd_string str, ctd_string substring, ptrdiff_t start, Error* error)
+ctd_option(ptrdiff_t) ctd_string_find(ctd_string str, ctd_string substring, ptrdiff_t start, ctd_error* error)
 {
     if (start >= str.length)
     {
@@ -111,10 +111,10 @@ option(ptrdiff_t) ctd_string_find(ctd_string str, ctd_string substring, ptrdiff_
  * @param str String to be searched.
  * @param substring Substring to be found.
  * @param end Where search ends. Exclusive.
- * @param error Pointer to Error struct.
+ * @param error Pointer to error struct.
  * @return
  */
-option(ptrdiff_t) ctd_string_reverse_find(ctd_string str, ctd_string substring, ptrdiff_t end, Error* error)
+ctd_option(ptrdiff_t) ctd_string_reverse_find(ctd_string str, ctd_string substring, ptrdiff_t end, ctd_error* error)
 {
     if (end > str.length)
     {
@@ -165,7 +165,7 @@ uint64_t ctd_string_hash(ctd_string str)
     return hash;
 }
 
-ctd_string ctd_string_remove_whitespace(ctd_string str, ctd_allocator allocator, Error* error)
+ctd_string ctd_string_remove_whitespace(ctd_string str, ctd_allocator allocator, ctd_error* error)
 {
     char* initial_buffer = allocator.allocate(allocator.context, str.length * sizeof(char), alignof(char));
     if (initial_buffer == NULL)
@@ -212,7 +212,7 @@ ctd_string ctd_string_remove_whitespace(ctd_string str, ctd_allocator allocator,
 }
 
 
-ctd_string ctd_string_copy(ctd_string str, ctd_allocator allocator, Error* error)
+ctd_string ctd_string_copy(ctd_string str, ctd_allocator allocator, ctd_error* error)
 {
     char *data = allocator.allocate(allocator.context, str.length * sizeof(char), alignof(char));
     if (data == NULL)
@@ -227,7 +227,7 @@ ctd_string ctd_string_copy(ctd_string str, ctd_allocator allocator, Error* error
     return (ctd_string){.data = data, .length = str.length};
 }
 
-char* ctd_string_to_c_string(ctd_string str, ctd_allocator allocator, Error* error)
+char* ctd_string_to_c_string(ctd_string str, ctd_allocator allocator, ctd_error* error)
 {
     char* data = allocator.allocate(allocator.context, (str.length + 1) * sizeof(char), alignof(char));
     if (data == NULL)
@@ -249,7 +249,7 @@ void ctd_string_destroy(ctd_string* self, ctd_allocator allocator)
     *self = (ctd_string) {0};
 }
 
-ctd_string_builder ctd_string_builder_create(ptrdiff_t capacity, ctd_allocator* allocator, Error* error)
+ctd_string_builder ctd_string_builder_create(ptrdiff_t capacity, ctd_allocator* allocator, ctd_error* error)
 {
     char *data = allocator->allocate(allocator->context, capacity, alignof(char));
     if (data == NULL)
@@ -263,7 +263,7 @@ ctd_string_builder ctd_string_builder_create(ptrdiff_t capacity, ctd_allocator* 
     return (ctd_string_builder){.data = data, .length = 0, .capacity = capacity, .allocator = allocator};
 }
 
-void ctd_string_builder_push_back(ctd_string_builder* self, char c, Error* error)
+void ctd_string_builder_push_back(ctd_string_builder* self, char c, ctd_error* error)
 {
     if (self == NULL)
     {
@@ -281,7 +281,7 @@ void ctd_string_builder_push_back(ctd_string_builder* self, char c, Error* error
     self->length++;
 }
 
-void ctd_string_builder_pop_back(ctd_string_builder* self, Error* error)
+void ctd_string_builder_pop_back(ctd_string_builder* self, ctd_error* error)
 {
     if (self == NULL)
     {
@@ -300,7 +300,7 @@ void ctd_string_builder_pop_back(ctd_string_builder* self, Error* error)
     ctd_string_builder_maybe_contract(self, error);
 }
 
-void ctd_string_builder_append(ctd_string_builder *self, ctd_string str, Error* error)
+void ctd_string_builder_append(ctd_string_builder *self, ctd_string str, ctd_error* error)
 {
     if (self == NULL)
     {
@@ -319,7 +319,7 @@ void ctd_string_builder_append(ctd_string_builder *self, ctd_string str, Error* 
     self->length += str.length;
 }
 
-void ctd_string_builder_insert(ctd_string_builder *self, ctd_string str, ptrdiff_t index, Error* error)
+void ctd_string_builder_insert(ctd_string_builder *self, ctd_string str, ptrdiff_t index, ctd_error* error)
 {
     if (self == NULL)
     {
@@ -350,7 +350,7 @@ void ctd_string_builder_insert(ctd_string_builder *self, ctd_string str, ptrdiff
     self->length += str.length;
 }
 
-void ctd_string_builder_remove(ctd_string_builder* self, ptrdiff_t index, ptrdiff_t length, Error* error)
+void ctd_string_builder_remove(ctd_string_builder* self, ptrdiff_t index, ptrdiff_t length, ctd_error* error)
 {
     if (self == NULL)
     {
@@ -382,9 +382,9 @@ void ctd_string_builder_remove(ctd_string_builder* self, ptrdiff_t index, ptrdif
  * @param replacement String to be inserted.
  * @param index Starting index of sequence of characters to be removed. Inclusive.
  * @param length Number of characters to be removed.
- * @param error Pointer to Error struct.
+ * @param error Pointer to error struct.
  */
-void ctd_string_builder_replace_at(ctd_string_builder* self, ctd_string replacement, ptrdiff_t index, ptrdiff_t length, Error* error)
+void ctd_string_builder_replace_at(ctd_string_builder* self, ctd_string replacement, ptrdiff_t index, ptrdiff_t length, ctd_error* error)
 {
     if (self == NULL)
     {
@@ -421,10 +421,10 @@ void ctd_string_builder_replace_at(ctd_string_builder* self, ctd_string replacem
  * @param self String builder to search.
  * @param substring String to be searched for.
  * @param start Beginning index to search from. Inclusive.
- * @param error Pointer to Error struct.
+ * @param error Pointer to error struct.
  * @return
  */
-option(ptrdiff_t) ctd_string_builder_find(ctd_string_builder* self, ctd_string substring, ptrdiff_t start, Error* error)
+ctd_option(ptrdiff_t) ctd_string_builder_find(ctd_string_builder* self, ctd_string substring, ptrdiff_t start, ctd_error* error)
 {
     ctd_string str= {.data = self->data, .length = self->length};
 
@@ -436,24 +436,24 @@ option(ptrdiff_t) ctd_string_builder_find(ctd_string_builder* self, ctd_string s
  * @param self String builder to search.
  * @param substring String to be searched for.
  * @param end Index that searching won't go past. Exclusive.
- * @param error Pointer ot Error struct.
+ * @param error Pointer ot error struct.
  * @return
  */
-option(ptrdiff_t) ctd_string_builder_reverse_find(ctd_string_builder* self, ctd_string substring, ptrdiff_t end, Error* error)
+ctd_option(ptrdiff_t) ctd_string_builder_reverse_find(ctd_string_builder* self, ctd_string substring, ptrdiff_t end, ctd_error* error)
 {
     ctd_string str= {.data = self->data, .length = self->length};
 
     return ctd_string_reverse_find(str, substring, end, error);
 }
 
-bool ctd_string_builder_contains(ctd_string_builder* self, ctd_string substring, Error* error)
+bool ctd_string_builder_contains(ctd_string_builder* self, ctd_string substring, ctd_error* error)
 {
     return IS_SOME(ctd_string_builder_find(self, substring, 0, error));
 }
 
-void ctd_string_builder_replace(ctd_string_builder* self, ctd_string substring, ctd_string replacement, ptrdiff_t start, Error* error)
+void ctd_string_builder_replace(ctd_string_builder* self, ctd_string substring, ctd_string replacement, ptrdiff_t start, ctd_error* error)
 {
-    option(ptrdiff_t) index_option = ctd_string_builder_find(self, substring, start, error);
+    ctd_option(ptrdiff_t) index_option = ctd_string_builder_find(self, substring, start, error);
     if (error->error_type != NO_ERROR)
     {
         return;
@@ -466,9 +466,9 @@ void ctd_string_builder_replace(ctd_string_builder* self, ctd_string substring, 
     ctd_string_builder_replace_at(self, replacement, index, substring.length, error);
 }
 
-void ctd_string_builder_replace_all(ctd_string_builder* self, ctd_string substring, ctd_string replacement, ptrdiff_t start, Error* error)
+void ctd_string_builder_replace_all(ctd_string_builder* self, ctd_string substring, ctd_string replacement, ptrdiff_t start, ctd_error* error)
 {
-    option(ptrdiff_t) index_option = ctd_string_builder_find(self, substring, start, error);
+    ctd_option(ptrdiff_t) index_option = ctd_string_builder_find(self, substring, start, error);
     ptrdiff_t length_difference = replacement.length - substring.length;
     ptrdiff_t index;
     while (IS_SOME((index_option = ctd_string_builder_find(self, substring, start, error))) && error->error_type == NO_ERROR)
@@ -507,7 +507,7 @@ void ctd_string_builder_clear(ctd_string_builder* self)
 
 
 ctd_string ctd_string_builder_to_substring(ctd_string_builder *self, ptrdiff_t index, ptrdiff_t length,
-                                           ctd_allocator allocator, Error* error)
+                                           ctd_allocator allocator, ctd_error* error)
 {
     char *data = allocator.allocate(allocator.context, length, alignof(char));
     if (data == NULL)
@@ -522,7 +522,7 @@ ctd_string ctd_string_builder_to_substring(ctd_string_builder *self, ptrdiff_t i
     return (ctd_string){.data = data, .length = length};
 }
 
-ctd_string ctd_string_builder_to_string(ctd_string_builder *self, ctd_allocator allocator, Error* error)
+ctd_string ctd_string_builder_to_string(ctd_string_builder *self, ctd_allocator allocator, ctd_error* error)
 {
     char *data = allocator.allocate(allocator.context, self->length, alignof(char));
     if (data == NULL)
@@ -547,7 +547,7 @@ ctd_string ctd_string_builder_to_string(ctd_string_builder *self, ctd_allocator 
  * @param error
  * @return
  */
-ctd_string ctd_string_builder_to_span(ctd_string_builder *self, ptrdiff_t start, ptrdiff_t end, Error* error)
+ctd_string ctd_string_builder_to_span(ctd_string_builder *self, ptrdiff_t start, ptrdiff_t end, ctd_error* error)
 {
     if (start < 0 || end > self->length || start > end)
     {
@@ -576,15 +576,15 @@ void ctd_string_builder_destroy(ctd_string_builder *self)
     *self = (ctd_string_builder) {0};
 }
 
-void ctd_string_builder_maybe_expand(ctd_string_builder* self, ptrdiff_t expand_by, Error* error)
+void ctd_string_builder_maybe_expand(ctd_string_builder* self, ptrdiff_t expand_by, ctd_error* error)
 {
     if (self->length + expand_by >= self->capacity)
     {
-        ctd_string_builder_resize(self, max(self->length + expand_by, self->capacity * 2), error);
+        ctd_string_builder_resize(self, ctd_max(self->length + expand_by, self->capacity * 2), error);
     }
 }
 
-void ctd_string_builder_maybe_contract(ctd_string_builder* self, Error* error)
+void ctd_string_builder_maybe_contract(ctd_string_builder* self, ctd_error* error)
 {
     if (self->length <= self->capacity / 4)
     {
@@ -592,7 +592,7 @@ void ctd_string_builder_maybe_contract(ctd_string_builder* self, Error* error)
     }
 }
 
-void ctd_string_builder_resize(ctd_string_builder *self, ptrdiff_t new_capacity, Error* error)
+void ctd_string_builder_resize(ctd_string_builder *self, ptrdiff_t new_capacity, ctd_error* error)
 {
     char* new_data = self->allocator->reallocate(self->allocator->context, self->data, self->capacity, new_capacity, alignof(char));
     if (new_data == NULL)

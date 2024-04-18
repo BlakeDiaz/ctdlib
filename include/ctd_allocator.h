@@ -1,5 +1,5 @@
-#ifndef ALLOCATOR_H
-#define ALLOCATOR_H
+#ifndef CTD_ALLOCATOR_H
+#define CTD_ALLOCATOR_H
 #include <stddef.h>
 
 typedef struct ctd_allocator
@@ -17,4 +17,4 @@ typedef struct ctd_default_allocator
 
 extern ctd_default_allocator ctd_default_allocator_instance;
 ctd_default_allocator ctd_default_allocator_create();
-#endif
+#endif // CTD_ALLOCATOR_H

@@ -1,5 +1,5 @@
-#ifndef ARENA_H
-#define ARENA_H
+#ifndef CTD_ARENA_H
+#define CTD_ARENA_H
 #include <ctd_allocator.h>
 
 typedef struct ctd_arena_allocator
@@ -34,4 +34,4 @@ ctd_expandable_arena_allocator ctd_expandable_arena_allocator_create(ctd_expanda
 void ctd_arena_allocator_destroy(ctd_arena_allocator* self, ctd_allocator* allocator);
 void ctd_expandable_arena_allocator_destroy(ctd_expandable_arena_allocator* self);
 
-#endif // ARENA_H
+#endif // CTD_ARENA_H

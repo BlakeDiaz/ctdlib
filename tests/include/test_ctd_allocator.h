@@ -1,6 +1,6 @@
-#ifndef TEST_ALLOCATOR_H
-#define TEST_ALLOCATOR_H
+#ifndef TEST_CTD_ALLOCATOR_H
+#define TEST_CTD_ALLOCATOR_H
 
 void test_ctd_allocator_functions();
 
-#endif // TEST_ALLOCATOR_H
+#endif // TEST_CTD_ALLOCATOR_H

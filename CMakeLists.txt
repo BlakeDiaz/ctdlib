@@ -6,16 +6,15 @@ set(CMAKE_C_STANDARD 11)
 
 add_library(ctdlib
     src/ctd_string.c
-    src/misc_utils.c
+    src/ctd_define.c
     src/ctd_allocator.c
     src/ctd_arena.c
-    src/hash_map.c
 )
 
 target_include_directories(ctdlib PUBLIC include)
 
 add_executable(test
-    tests/src/main.c
+    tests/src/test.c
     tests/src/test_ctd_string.c
     tests/src/test_ctd_allocator.c
     tests/src/test_ctd_arena.c

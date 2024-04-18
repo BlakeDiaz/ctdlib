@@ -1,5 +1,5 @@
-#ifndef TEST_H
-#define TEST_H
+#ifndef TEST_CTD_H
+#define TEST_CTD_H
 #include <stdio.h>
 
 #define RUN_TEST(method_name, status_variable, number_of_tests_failed) \
@@ -15,4 +15,4 @@ else\
     printf("\x1b[32m[Succeeded]\x1b[0m\n");\
 }
 
-#endif //TEST_H
+#endif // TEST_CTD_H

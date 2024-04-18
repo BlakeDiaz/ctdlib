@@ -1,5 +1,5 @@
-#ifndef MACRO_TOOLS_H
-#define MACRO_TOOLS_H
+#ifndef CTD_MACRO_TOOLS_H
+#define CTD_MACRO_TOOLS_H
 
 #define defer(...) for (int _i = 1; _i; _i = 0, __VA_ARGS__)
 #define EVAL(x) x

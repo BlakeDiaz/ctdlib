@@ -1,30 +1,30 @@
-#ifndef OPTION_H
-#define OPTION_H
+#ifndef CTD_OPTION_H
+#define CTD_OPTION_H
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#define option(typename) option_##typename
+#define ctd_option(typename) ctd_option_##typename
 
-#define OPTION_TYPE_DECL(type, typename)                                                                               \
-    typedef struct option_##typename                                                                                   \
+#define CTD_OPTION_TYPE_DECL(type, typename)                                                                               \
+    typedef struct ctd_option_##typename                                                                                   \
     {                                                                                                                  \
         type value;                                                                                                    \
         bool exists;                                                                                                   \
     }                                                                                                                  \
-    option_##typename;
+    ctd_option_##typename;
 
 #define SOME(typename, value_param)                                                                                    \
-    (option(typename))                                                                                                 \
+    (ctd_option(typename))                                                                                                 \
     {                                                                                                                  \
         .value = value_param, .exists = true                                                                           \
     }
-#define NONE(typename) (option(typename)){0}
+#define NONE(typename) (ctd_option(typename)){0}
 #define IS_SOME(option_value) option_value.exists
 #define IS_NONE(option_value) !option_value.exists
 #define UNWRAP(option_value) option_value.exists ? option_value.value : (abort(), option_value.value)
 
-#define DEFAULT_OPTION_TYPES(X)                                                                                        \
+#define CTD_DEFAULT_OPTION_TYPES(X)                                                                                        \
     X(bool, bool)                                                                                                      \
     X(char, char)                                                                                                      \
     X(signed char, schar)                                                                                              \
@@ -70,4 +70,4 @@
     X(int_least64_t, int_least64_t)                                                                                    \
     X(intmax_t, intmax_t)                                                                                              \
     X(intptr_t, intptr_t)
-#endif // OPTION_H
+#endif // CTD_OPTION_H

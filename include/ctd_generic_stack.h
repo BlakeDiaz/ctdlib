@@ -1,68 +1,68 @@
-#ifndef GENERIC_STACK_H
-#define GENERIC_STACK_H
-#include <error_message.h>
-#include <misc_utils.h>
+#ifndef CTD_GENERIC_STACK_H
+#define CTD_GENERIC_STACK_H
+#include <ctd_error_message.h>
+#include <ctd_define.h>
 #include <stdlib.h>
 
-#define FORMAT_STACK(type, typename, function_name) , phs_stack_##typename* : phs_stack_##typename##_##function_name
+#define FORMAT_STACK(type, typename, function_name) , ctd_stack_##typename* : ctd_stack_##typename##_##function_name
 
-#define phs_stack(typename) phs_stack_##typename
+#define ctd_stack(typename) ctd_stack_##typename
 
-#define phs_stack_create(typename, capacity, error_ptr) phs_stack_##typename##_create((capacity), (error_ptr))
+#define ctd_stack_create(typename, capacity, error_ptr) ctd_stack_##typename##_create((capacity), (error_ptr))
 
-#define phs_stack_initialize(typename, variable_name, capacity, error_ptr)                                             \
-    phs_stack_##typename variable_name = phs_stack_##typename##_create((capacity), (error_ptr))
+#define ctd_stack_initialize(typename, variable_name, capacity, error_ptr)                                             \
+    ctd_stack_##typename variable_name = ctd_stack_##typename##_create((capacity), (error_ptr))
 
-#define phs_stack_destroy(stack_ptr)                                                                                   \
+#define ctd_stack_destroy(stack_ptr)                                                                                   \
 _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, destroy))(stack_ptr)
 
-#define phs_stack_push(stack_ptr, value, error_ptr)                                                                    \
+#define ctd_stack_push(stack_ptr, value, error_ptr)                                                                    \
 _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, push))(stack_ptr, value, error_ptr)
 
-#define phs_stack_pop(stack_ptr, error_ptr)                                                                            \
+#define ctd_stack_pop(stack_ptr, error_ptr)                                                                            \
 _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, pop))(stack_ptr, error_ptr)
 
-#define phs_stack_peek(stack_ptr, error_ptr)                                                                           \
+#define ctd_stack_peek(stack_ptr, error_ptr)                                                                           \
 _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(stack_ptr, error_ptr)
 
 #define GENERIC_STACK_TYPE_DECL(type, typename, ...)                                                                   \
-    typedef struct phs_stack_##typename                                                                                \
+    typedef struct ctd_stack_##typename                                                                                \
     {                                                                                                                  \
         type* data;                                                                                                    \
         ptrdiff_t length;                                                                                              \
         ptrdiff_t capacity;                                                                                            \
     }                                                                                                                  \
-    phs_stack_##typename;                                                                                              \
-    typedef struct phs_stack_##typename##_iterator                                                                     \
+    ctd_stack_##typename;                                                                                              \
+    typedef struct ctd_stack_##typename##_iterator                                                                     \
     {                                                                                                                  \
         type* ptr;                                                                                                     \
     }                                                                                                                  \
-    phs_stack_##typename##_iterator;
+    ctd_stack_##typename##_iterator;
 
 #define GENERIC_STACK_FUNCTIONS_DECL(type, typename, ...)                                                              \
-    phs_stack_##typename phs_stack_##typename##_create(ptrdiff_t capacity, Error* error);                              \
-    void phs_stack_##typename##_destroy(phs_stack_##typename* self);                                                   \
-    void phs_stack_##typename##_push(phs_stack_##typename* self, type value, Error* error);                            \
-    type phs_stack_##typename##_pop(phs_stack_##typename* self, Error* error);                                         \
-    type phs_stack_##typename##_peek(phs_stack_##typename* self, Error* error);                                        \
-    phs_stack_##typename##_iterator phs_stack_##                                                                       \
-        typename##_iterator_begin(phs_stack_##typename* phs_stack, Error* error);                                      \
-    phs_stack_##typename##_iterator phs_stack_##                                                                       \
-        typename##_iterator_end(phs_stack_##typename* phs_stack, Error* error);                                        \
-    void phs_stack_##typename##_iterator_increment(phs_stack_##typename##_iterator* iterator, Error* error);
+    ctd_stack_##typename ctd_stack_##typename##_create(ptrdiff_t capacity, ctd_error* error);                          \
+    void ctd_stack_##typename##_destroy(ctd_stack_##typename* self);                                                   \
+    void ctd_stack_##typename##_push(ctd_stack_##typename* self, type value, ctd_error* error);                        \
+    type ctd_stack_##typename##_pop(ctd_stack_##typename* self, ctd_error* error);                                     \
+    type ctd_stack_##typename##_peek(ctd_stack_##typename* self, ctd_error* error);                                    \
+    ctd_stack_##typename##_iterator ctd_stack_##                                                                       \
+        typename##_iterator_begin(ctd_stack_##typename* ctd_stack, ctd_error* error);                                  \
+    ctd_stack_##typename##_iterator ctd_stack_##                                                                       \
+        typename##_iterator_end(ctd_stack_##typename* ctd_stack, ctd_error* error);                                    \
+    void ctd_stack_##typename##_iterator_increment(ctd_stack_##typename##_iterator* iterator, ctd_error* error);
 
 #define GENERIC_STACK_IMPL(type, typename, ...)                                                                        \
-    void phs_stack_##typename##_resize(phs_stack_##typename* self, ptrdiff_t new_capacity, Error* error);              \
-    void phs_stack_##typename##_maybe_expand(phs_stack_##typename* self, Error* error);                                \
-    void phs_stack_##typename##_maybe_contract(phs_stack_##typename* self, Error* error);                              \
-    phs_stack_##typename phs_stack_##typename##_create(ptrdiff_t capacity, Error* error)                               \
+    void ctd_stack_##typename##_resize(ctd_stack_##typename* self, ptrdiff_t new_capacity, ctd_error* error);          \
+    void ctd_stack_##typename##_maybe_expand(ctd_stack_##typename* self, ctd_error* error);                            \
+    void ctd_stack_##typename##_maybe_contract(ctd_stack_##typename* self, ctd_error* error);                          \
+    ctd_stack_##typename ctd_stack_##typename##_create(ptrdiff_t capacity, ctd_error* error)                           \
     {                                                                                                                  \
         if (capacity == 0)                                                                                             \
         {                                                                                                              \
             capacity = 1;                                                                                              \
         }                                                                                                              \
                                                                                                                        \
-        phs_stack_##typename stack = {0};                                                                              \
+        ctd_stack_##typename stack = {0};                                                                              \
         stack.length = 0;                                                                                              \
         stack.capacity = capacity;                                                                                     \
         stack.data = malloc(sizeof(type) * stack.capacity);                                                            \
@@ -71,24 +71,24 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
             error->error_type = ALLOCATION_FAIL;                                                                       \
             error->error_message = "Malloc Failed.";                                                                   \
                                                                                                                        \
-            phs_stack_##typename empty = {0};                                                                          \
+            ctd_stack_##typename empty = {0};                                                                          \
             return empty;                                                                                              \
         }                                                                                                              \
                                                                                                                        \
         return stack;                                                                                                  \
     }                                                                                                                  \
                                                                                                                        \
-    void phs_stack_##typename##_destroy(phs_stack_##typename* self)                                                    \
+    void ctd_stack_##typename##_destroy(ctd_stack_##typename* self)                                                    \
     {                                                                                                                  \
         if (self->data != NULL)                                                                                        \
         {                                                                                                              \
             free(self->data);                                                                                          \
         }                                                                                                              \
-        phs_stack_##typename empty = {0};                                                                              \
+        ctd_stack_##typename empty = {0};                                                                              \
         *self = empty;                                                                                                 \
     }                                                                                                                  \
                                                                                                                        \
-    void phs_stack_##typename##_push(phs_stack_##typename* self, type value, Error* error)                             \
+    void ctd_stack_##typename##_push(ctd_stack_##typename* self, type value, ctd_error* error)                         \
     {                                                                                                                  \
         if (self == NULL)                                                                                              \
         {                                                                                                              \
@@ -100,10 +100,10 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
                                                                                                                        \
         self->data[self->length - 1] = value;                                                                          \
         self->length++;                                                                                                \
-        phs_stack_##typename##_maybe_expand(self, error);                                                              \
+        ctd_stack_##typename##_maybe_expand(self, error);                                                              \
     }                                                                                                                  \
                                                                                                                        \
-    type phs_stack_##typename##_pop(phs_stack_##typename* self, Error* error)                                          \
+    type ctd_stack_##typename##_pop(ctd_stack_##typename* self, ctd_error* error)                                      \
     {                                                                                                                  \
         if (self == NULL)                                                                                              \
         {                                                                                                              \
@@ -123,7 +123,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
         }                                                                                                              \
                                                                                                                        \
         type popped_element = self->data[self->length - 1];                                                            \
-        phs_stack_##typename##_maybe_contract(self, error);                                                            \
+        ctd_stack_##typename##_maybe_contract(self, error);                                                            \
         if (error->error_type != NO_ERROR)                                                                             \
         {                                                                                                              \
             int empty = {0};                                                                                           \
@@ -132,7 +132,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
                                                                                                                        \
         return popped_element;                                                                                         \
     }                                                                                                                  \
-    type phs_stack_##typename##_peek(phs_stack_##typename* self, Error* error)                                         \
+    type ctd_stack_##typename##_peek(ctd_stack_##typename* self, ctd_error* error)                                     \
     {                                                                                                                  \
         if (self == NULL)                                                                                              \
         {                                                                                                              \
@@ -153,7 +153,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
                                                                                                                        \
         return self->data[self->length - 1];                                                                           \
     }                                                                                                                  \
-    void phs_stack_##typename##_resize(phs_stack_##typename* self, ptrdiff_t new_capacity, Error* error)               \
+    void ctd_stack_##typename##_resize(ctd_stack_##typename* self, ptrdiff_t new_capacity, ctd_error* error)           \
     {                                                                                                                  \
         type* new_data = realloc(self->data, new_capacity);                                                            \
         if (new_data == NULL)                                                                                          \
@@ -165,48 +165,48 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(
         self->capacity = new_capacity;                                                                                 \
         self->data = new_data;                                                                                         \
     }                                                                                                                  \
-    void phs_stack_##typename##_maybe_expand(phs_stack_##typename* self, Error* error)                                 \
+    void ctd_stack_##typename##_maybe_expand(ctd_stack_##typename* self, ctd_error* error)                             \
     {                                                                                                                  \
         if (self->length == self->capacity)                                                                            \
         {                                                                                                              \
-            phs_stack_##typename##_resize(self, self->capacity * 2 + 1, error);                                        \
+            ctd_stack_##typename##_resize(self, self->capacity * 2 + 1, error);                                        \
         }                                                                                                              \
     }                                                                                                                  \
-    void phs_stack_##typename##_maybe_contract(phs_stack_##typename* self, Error* error)                               \
+    void ctd_stack_##typename##_maybe_contract(ctd_stack_##typename* self, ctd_error* error)                           \
     {                                                                                                                  \
         if (self->length < self->capacity / 4)                                                                         \
         {                                                                                                              \
-            phs_stack_##typename##_resize(self, self->capacity / 2, error);                                            \
+            ctd_stack_##typename##_resize(self, self->capacity / 2, error);                                            \
         }                                                                                                              \
     }                                                                                                                  \
-    phs_stack_##typename##_iterator phs_stack_##                                                                       \
-        typename##_iterator_begin(phs_stack_##typename* phs_stack, Error* error)                                       \
+    ctd_stack_##typename##_iterator ctd_stack_##                                                                       \
+        typename##_iterator_begin(ctd_stack_##typename* ctd_stack, ctd_error* error)                                   \
     {                                                                                                                  \
-        if (phs_stack == NULL)                                                                                         \
+        if (ctd_stack == NULL)                                                                                         \
         {                                                                                                              \
             error->error_type = INVALID_ARGUMENT;                                                                      \
             error->error_message = "Stack was NULL";                                                                   \
                                                                                                                        \
-            phs_stack_##typename##_iterator empty = {0};                                                               \
+            ctd_stack_##typename##_iterator empty = {0};                                                               \
             return empty;                                                                                              \
         }                                                                                                              \
                                                                                                                        \
-        return (phs_stack_##typename##_iterator){.ptr = phs_stack->data};                                              \
+        return (ctd_stack_##typename##_iterator){.ptr = ctd_stack->data};                                              \
     }                                                                                                                  \
-    phs_stack_##typename##_iterator phs_stack_##typename##_iterator_end(phs_stack_##typename* phs_stack, Error* error) \
+    ctd_stack_##typename##_iterator ctd_stack_##typename##_iterator_end(ctd_stack_##typename* ctd_stack, ctd_error* error) \
     {                                                                                                                  \
-        if (phs_stack == NULL)                                                                                         \
+        if (ctd_stack == NULL)                                                                                         \
         {                                                                                                              \
             error->error_type = INVALID_ARGUMENT;                                                                      \
             error->error_message = "Stack was NULL";                                                                   \
                                                                                                                        \
-            phs_stack_##typename##_iterator empty = {0};                                                               \
+            ctd_stack_##typename##_iterator empty = {0};                                                               \
             return empty;                                                                                              \
         }                                                                                                              \
                                                                                                                        \
-        return (phs_stack_##typename##_iterator){.ptr = phs_stack->data + phs_stack->length};                          \
+        return (ctd_stack_##typename##_iterator){.ptr = ctd_stack->data + ctd_stack->length};                          \
     }                                                                                                                  \
-    void phs_stack_##typename##_iterator_increment(phs_stack_##typename##_iterator* iterator, Error* error)            \
+    void ctd_stack_##typename##_iterator_increment(ctd_stack_##typename##_iterator* iterator, ctd_error* error)        \
     {                                                                                                                  \
         if (iterator->ptr == NULL)                                                                                     \
         {                                                                                                              \
