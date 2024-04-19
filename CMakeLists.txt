@@ -9,6 +9,7 @@ add_library(ctdlib
     src/ctd_define.c
     src/ctd_allocator.c
     src/ctd_arena.c
+    src/ctd_expandable_arena_allocator.c
 )
 
 target_include_directories(ctdlib PUBLIC include)
