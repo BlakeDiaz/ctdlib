@@ -1,4 +1,4 @@
-#include <ctd_arena.h>
+#include <ctd_arena_allocator.h>
 #include <test_ctd_arena.h>
 #include <test.h>
 #include <stdint.h>

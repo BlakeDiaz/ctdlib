@@ -8,7 +8,7 @@ add_library(ctdlib
     src/ctd_string.c
     src/ctd_define.c
     src/ctd_allocator.c
-    src/ctd_arena.c
+    src/ctd_arena_allocator.c
     src/ctd_expandable_arena_allocator.c
 )
 
