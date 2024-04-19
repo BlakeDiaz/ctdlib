@@ -4,6 +4,13 @@
 #include <stdalign.h>
 #include <ctd_define.h>
 
+typedef struct ctd_arena_context
+{
+    ptrdiff_t length;
+    ptrdiff_t capacity;
+    char* data;
+} ctd_arena_context;
+
 // TODO maybe make size and count to overflow check?
 static void* ctd_arena_allocator_allocate(void* context, ptrdiff_t size, ptrdiff_t align)
 {

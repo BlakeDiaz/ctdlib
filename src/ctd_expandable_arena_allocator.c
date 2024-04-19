@@ -4,6 +4,14 @@
 #include <stdint.h>
 #include <string.h>
 
+typedef struct ctd_expandable_arena_context
+{
+    ptrdiff_t length;
+    ptrdiff_t capacity;
+    char* data;
+    ctd_allocator* allocator;
+} ctd_expandable_arena_context;
+
 static void ctd_expandable_arena_allocator_expand(ctd_expandable_arena_context* context, const ptrdiff_t expand_by)
 {
     char* new_data = context->allocator->reallocate(context->allocator->context, context->data, context->capacity, ctd_max(context->capacity * 2 + 1, expand_by), alignof(char));

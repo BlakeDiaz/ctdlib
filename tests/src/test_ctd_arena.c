@@ -4,6 +4,13 @@
 #include <stdint.h>
 #include <stdalign.h>
 
+typedef struct ctd_arena_context
+{
+    ptrdiff_t length;
+    ptrdiff_t capacity;
+    char* data;
+} ctd_arena_context;
+
 int test_ctd_arena_allocator_create()
 {
     ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;

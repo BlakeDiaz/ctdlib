@@ -7,12 +7,6 @@ typedef struct ctd_arena_allocator
     ctd_allocator allocator;
 } ctd_arena_allocator;
 
-typedef struct ctd_arena_context
-{
-    ptrdiff_t length;
-    ptrdiff_t capacity;
-    char* data;
-} ctd_arena_context;
 ctd_arena_allocator ctd_arena_allocator_create(ptrdiff_t size, ctd_allocator* alloc);
 void ctd_arena_allocator_destroy(ctd_arena_allocator* self, ctd_allocator* allocator);
 
