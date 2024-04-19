@@ -1,6 +1,6 @@
 #ifndef CTD_GENERIC_STACK_H
 #define CTD_GENERIC_STACK_H
-#include <ctd_error_message.h>
+#include <ctd_error.h>
 #include <ctd_define.h>
 #include <stdlib.h>
 

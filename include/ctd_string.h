@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <ctd_allocator.h>
 #include <ctd_define.h>
-#include <ctd_error_message.h>
+#include <ctd_error.h>
 #include <ctd_option.h>
 
 #ifndef DEFAULT_OPTION_TYPES_DECL

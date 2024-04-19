@@ -1,6 +1,6 @@
 #ifndef CTD_GENERIC_DYNAMIC_ARRAY_C
 #define CTD_GENERIC_DYNAMIC_ARRAY_C
-#include <ctd_error_message.h>
+#include <ctd_error.h>
 #include <ctd_define.h>
 #include <ctd_macro_tools.h>
 #include <stdlib.h>

@@ -1,5 +1,5 @@
-#ifndef CTD_ERROR_MESSAGE_H
-#define CTD_ERROR_MESSAGE_H
+#ifndef CTD_ERROR_H
+#define CTD_ERROR_H
 
 #include <stdio.h>
 
@@ -36,4 +36,4 @@ typedef struct ctd_error
         fprintf(stderr, "%s\n", error->error_message); \
         abort();\
     }
-#endif // CTD_ERROR_MESSAGE_H
+#endif // CTD_ERROR_H
