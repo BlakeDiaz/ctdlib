@@ -18,7 +18,8 @@ add_executable(test
     tests/src/test.c
     tests/src/test_ctd_string.c
     tests/src/test_ctd_allocator.c
-    tests/src/test_ctd_arena.c
+    tests/src/test_ctd_arena_allocator.c
+    tests/src/test_ctd_expandable_arena_allocator.c
 )
 target_include_directories(test PUBLIC tests/include)
 
