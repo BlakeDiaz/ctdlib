@@ -29,7 +29,7 @@ int test_ctd_arena_allocator_create()
     heap_allocator.deallocate(heap_allocator.context, context, sizeof(ctd_arena_context));
     return 0;
 cleanup:
-    // This is safe b.c. heap_allocator's deallocatoe is a wrapper around free
+    // This is safe b.c. heap_allocator's deallocate is a wrapper around free
     heap_allocator.deallocate(heap_allocator.context, context->data, 100 * sizeof(char));
     heap_allocator.deallocate(heap_allocator.context, context, sizeof(ctd_arena_context));
     return 1;
