@@ -498,7 +498,7 @@
         if (ctd_dynamic_array->length + expand_by >= ctd_dynamic_array->capacity)                                      \
         {                                                                                                              \
             ctd_dynamic_array_##typename##_resize(                                                                     \
-                ctd_dynamic_array, max(ctd_dynamic_array->length + expand_by, ctd_dynamic_array->capacity * 2 + 1),    \
+                ctd_dynamic_array, ctd_max(ctd_dynamic_array->length + expand_by, ctd_dynamic_array->capacity * 2 + 1),\
                 error);                                                                                                \
         }                                                                                                              \
     }                                                                                                                  \
