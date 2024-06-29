@@ -14,13 +14,13 @@ add_library(ctdlib
 
 target_include_directories(ctdlib PUBLIC include)
 
-add_executable(test
+add_executable(test_ctdlib
     tests/src/test.c
     tests/src/test_ctd_string.c
     tests/src/test_ctd_allocator.c
     tests/src/test_ctd_arena_allocator.c
     tests/src/test_ctd_expandable_arena_allocator.c
 )
-target_include_directories(test PUBLIC tests/include)
+target_include_directories(test_ctdlib PUBLIC tests/include)
 
-target_link_libraries(test ctdlib)
+target_link_libraries(test_ctdlib ctdlib)
