@@ -10,7 +10,6 @@ int main()
     test_ctd_allocator_functions();
     test_ctd_arena_allocator_functions();
     test_ctd_expandable_arena_functions();
-    ctd_memory_debug_terminate();
 
     return 0;
 }
