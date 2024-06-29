@@ -14,13 +14,15 @@ typedef struct ctd_expandable_arena_context
 
 static void ctd_expandable_arena_allocator_expand(ctd_expandable_arena_context* context, const ptrdiff_t expand_by)
 {
-    char* new_data = context->allocator->reallocate(context->allocator->context, context->data, context->capacity, ctd_max(context->capacity * 2 + 1, expand_by), alignof(char));
+    const ptrdiff_t new_capacity = ctd_max(context->capacity * 2 + 1, context->capacity + expand_by);
+    char* new_data = context->allocator->reallocate(context->allocator->context, context->data, context->capacity, new_capacity, alignof(char));
     if (new_data == NULL)
     {
         // TODO handle error
         return;
     }
     context->data = new_data;
+    context->capacity = new_capacity;
 }
 
 // TODO maybe make size and count to overflow check?
