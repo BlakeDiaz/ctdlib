@@ -104,6 +104,7 @@ ctd_expandable_arena_allocator ctd_expandable_arena_allocator_create(const ptrdi
     if (context == NULL) return expandable_arena;
     context->data = allocator->allocate(allocator->context, size, alignof(char));
     if (context->data == NULL) return expandable_arena;
+    context->length = 0;
     context->capacity = size;
     context->allocator = allocator;
     expandable_arena.allocator.allocate = ctd_expandable_arena_allocator_allocate;

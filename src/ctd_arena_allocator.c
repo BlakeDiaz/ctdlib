@@ -92,6 +92,7 @@ ctd_arena_allocator ctd_arena_allocator_create(ptrdiff_t size, ctd_allocator* al
     if (context == NULL) return arena;
     context->data = alloc->allocate(alloc->context, size, alignof(char));
     if (context->data == NULL) return arena;
+    context->length = 0;
     context->capacity = size;
     arena.allocator.allocate = ctd_arena_allocator_allocate;
     arena.allocator.reallocate = ctd_arena_allocator_reallocate;
