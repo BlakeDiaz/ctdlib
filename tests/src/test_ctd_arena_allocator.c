@@ -30,6 +30,7 @@ cleanup:
     heap_allocator.deallocate(heap_allocator.context, context, sizeof(ctd_arena_context));
     return 1;
 }
+
 int test_ctd_arena_allocate()
 {
     ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
@@ -79,8 +80,6 @@ cleanup:
     heap_allocator.deallocate(heap_allocator.context, context->data, 100 * sizeof(char));
     heap_allocator.deallocate(heap_allocator.context, context, sizeof(ctd_arena_context));
     return 1;
-
-    return 0;
 }
 
 int test_ctd_arena_deallocate()
