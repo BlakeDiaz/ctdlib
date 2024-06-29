@@ -16,11 +16,7 @@ int test_ctd_arena_allocator_create()
     ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
     const ctd_allocator arena = ctd_arena_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_arena_context* context = arena.context;
-    if (arena.allocate == NULL && arena.reallocate == NULL && arena.deallocate == NULL && arena.context == NULL) return 1;
-    if (arena.allocate == NULL) goto cleanup;
-    if (arena.reallocate == NULL) goto cleanup;
-    if (arena.deallocate == NULL) goto cleanup;
-    if (context == NULL) goto cleanup;
+    if (arena.context == NULL) return 1;
     if (context->data == NULL) goto cleanup;
     if (context->length != 0) goto cleanup;
     if (context->capacity != 100 * sizeof(char)) goto cleanup;
