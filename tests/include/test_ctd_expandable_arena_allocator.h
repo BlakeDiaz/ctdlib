@@ -1,6 +1,6 @@
 #ifndef TEST_CTD_EXPANDABLE_ARENA_ALLOCATOR_H
 #define TEST_CTD_EXPANDABLE_ARENA_ALLOCATOR_H
 
-void test_ctd_expandable_arena_functions();
+void test_ctd_expandable_arena_allocator_functions();
 
 #endif //TEST_CTD_EXPANDABLE_ARENA_ALLOCATOR_H

@@ -9,7 +9,7 @@ int main()
     test_ctd_string_functions();
     test_ctd_allocator_functions();
     test_ctd_arena_allocator_functions();
-    test_ctd_expandable_arena_functions();
+    test_ctd_expandable_arena_allocator_functions();
 
     return 0;
 }

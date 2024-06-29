@@ -1,5 +1,5 @@
 #include <ctd_arena_allocator.h>
-#include <test_ctd_arena.h>
+#include <test_ctd_arena_allocator.h>
 #include <test.h>
 #include <stdint.h>
 #include <stdalign.h>
@@ -124,7 +124,7 @@ int test_ctd_expandable_arena_deallocate()
     return 0;
 }
 
-void test_ctd_arena_functions()
+void test_ctd_arena_allocator_functions()
 {
     int status;
     uint32_t number_of_tests_failed = 0;
@@ -146,7 +146,7 @@ void test_ctd_arena_functions()
     printf("---------- End ctd_arena Test ----------\n\n");
 }
 
-void test_ctd_expandable_arena_functions()
+void test_ctd_expandable_arena_allocator_functions()
 {
 
     int status;
