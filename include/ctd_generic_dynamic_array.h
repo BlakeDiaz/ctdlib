@@ -145,7 +145,7 @@
     void ctd_dynamic_array_##                                                                                          \
         typename##_iterator_increment(ctd_dynamic_array_##typename##_iterator* iterator, ctd_error* error);
 
-#define DYNAMIC_ARRAY_IMPL(type, typename, ...)                                                                        \
+#define CTD_DYNAMIC_ARRAY_IMPL(type, typename, ...)                                                                        \
     void ctd_dynamic_array_##typename##_resize(ctd_dynamic_array_##typename* ctd_dynamic_array,                        \
                                                const ptrdiff_t new_capacity, ctd_error* error);                        \
     void ctd_dynamic_array_##typename##_maybe_expand(ctd_dynamic_array_##typename* ctd_dynamic_array,                  \
