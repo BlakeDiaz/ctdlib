@@ -21,8 +21,8 @@
             if (_new_data == NULL)                                                                                     \
             {                                                                                                          \
                 free(array.data);                                                                                      \
-                error->error_type = ALLOCATION_FAIL;                                                                   \
-                error->error_message = "Realloc failed.";                                                              \
+                error_ptr->error_type = ALLOCATION_FAIL;                                                               \
+                error_ptr->error_message = "Realloc failed.";                                                          \
             }                                                                                                          \
             else                                                                                                       \
             {                                                                                                          \
