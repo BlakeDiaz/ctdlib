@@ -113,6 +113,5 @@ void ctd_arena_allocator_destroy(ctd_arena_allocator* self, ctd_allocator* alloc
     ctd_arena_context* arena = self->allocator.context;
     allocator->deallocate(allocator->context, arena->data, arena->capacity);
     allocator->deallocate(allocator->context, arena, sizeof(ctd_arena_context));
-    *arena = (ctd_arena_context){0};
     *self = (ctd_arena_allocator){0};
 }

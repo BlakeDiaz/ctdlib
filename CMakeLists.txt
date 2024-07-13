@@ -4,6 +4,8 @@ project(test C)
 
 set(CMAKE_C_STANDARD 11)
 
+add_compile_options("-Wall" "-Wextra")
+
 add_library(ctdlib
     src/ctd_string.c
     src/ctd_define.c
@@ -24,3 +26,6 @@ add_executable(test_ctdlib
 target_include_directories(test_ctdlib PUBLIC tests/include)
 
 target_link_libraries(test_ctdlib ctdlib)
+
+target_compile_options(test_ctdlib PRIVATE "-fsanitize=address,undefined")
+target_link_options(test_ctdlib PRIVATE "-fsanitize=address,undefined")
