@@ -238,7 +238,7 @@ char* ctd_string_to_c_string(ctd_string str, ctd_allocator allocator, ctd_error*
         return NULL;
     }
     memcpy(data, str.data, str.length);
-    data[str.length + 1] = '\0';
+    data[str.length] = '\0';
 
     return data;
 }
