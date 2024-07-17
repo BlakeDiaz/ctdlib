@@ -12,6 +12,7 @@ add_library(ctdlib
     src/ctd_allocator.c
     src/ctd_arena_allocator.c
     src/ctd_expandable_arena_allocator.c
+    src/ctd_page_allocator.c
 )
 
 target_include_directories(ctdlib PUBLIC include)
@@ -22,6 +23,7 @@ add_executable(test_ctdlib
     tests/src/test_ctd_allocator.c
     tests/src/test_ctd_arena_allocator.c
     tests/src/test_ctd_expandable_arena_allocator.c
+    tests/src/test_ctd_page_allocator.c
 )
 target_include_directories(test_ctdlib PUBLIC tests/include)
 

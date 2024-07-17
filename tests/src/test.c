@@ -1,6 +1,7 @@
 #include <test_ctd_allocator.h>
 #include <test_ctd_arena_allocator.h>
 #include <test_ctd_expandable_arena_allocator.h>
+#include <test_ctd_page_allocator.h>
 #include <test_ctd_string.h>
 
 int main()
@@ -10,6 +11,7 @@ int main()
     test_ctd_allocator_functions();
     test_ctd_arena_allocator_functions();
     test_ctd_expandable_arena_allocator_functions();
+    test_ctd_page_allocator_functions();
 
     return 0;
 }
