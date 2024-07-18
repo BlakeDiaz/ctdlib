@@ -27,11 +27,11 @@ static void ctd_free(void* context, void* block, ptrdiff_t size)
     free(block);
 }
 
-ctd_default_allocator ctd_default_allocator_instance = {.allocator = {.context = NULL, .allocate = ctd_malloc, .reallocate = ctd_realloc, .deallocate = ctd_free}};
+ctd_heap_allocator ctd_heap_allocator_instance = {.allocator = {.context = NULL, .allocate = ctd_malloc, .reallocate = ctd_realloc, .deallocate = ctd_free}};
 
-ctd_default_allocator ctd_default_allocator_create()
+ctd_heap_allocator ctd_heap_allocator_create()
 {
     ctd_allocator allocator = {.allocate = ctd_malloc, .reallocate = ctd_realloc, .deallocate = ctd_free, .context = NULL};
-    return (ctd_default_allocator){.allocator = allocator};
+    return (ctd_heap_allocator){.allocator = allocator};
 }
 

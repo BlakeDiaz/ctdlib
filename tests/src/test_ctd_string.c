@@ -116,7 +116,7 @@ static int test_ctd_string_reverse_find()
 static int test_ctd_string_remove_whitespace()
 {
     ctd_error error = {0};
-    ctd_default_allocator allocator = ctd_default_allocator_create();
+    ctd_heap_allocator allocator = ctd_heap_allocator_create();
     ctd_string str_1 = ctd_string_create_from_literal("\nHi there!\n How are you\t today?\n");
     ctd_string str_2 = ctd_string_create_from_literal("Hithere!Howareyoutoday?");
 
@@ -143,33 +143,33 @@ static int test_ctd_string_remove_whitespace()
 static int test_ctd_string_copy()
 {
     ctd_error error = {0};
-    ctd_default_allocator default_allocator = ctd_default_allocator_create();
+    ctd_heap_allocator heap_allocator = ctd_heap_allocator_create();
 
     ctd_string a = ctd_string_create_from_literal("Hi there!");
-    ctd_string b = ctd_string_copy(a, default_allocator.allocator, &error);
+    ctd_string b = ctd_string_copy(a, heap_allocator.allocator, &error);
     if (error.error_type != NO_ERROR)
     {
         return 1;
     }
     if (!ctd_string_equals(a, b))
     {
-        ctd_string_destroy(&b, default_allocator.allocator);
+        ctd_string_destroy(&b, heap_allocator.allocator);
 
         return 1;
     }
     if (a.data == b.data) return 1;
 
-    ctd_string_destroy(&b, default_allocator.allocator);
+    ctd_string_destroy(&b, heap_allocator.allocator);
     return 0;
 }
 
 static int test_ctd_string_to_c_string()
 {
     ctd_error error = {0};
-    ctd_default_allocator default_allocator = ctd_default_allocator_create();
+    ctd_heap_allocator heap_allocator = ctd_heap_allocator_create();
 
     ctd_string str = ctd_string_create_from_literal("Hi there!");
-    char* c_string = ctd_string_to_c_string(str, default_allocator.allocator, &error);
+    char* c_string = ctd_string_to_c_string(str, heap_allocator.allocator, &error);
     if (error.error_type != NO_ERROR)
     {
         return 1;
@@ -187,11 +187,11 @@ static int test_ctd_string_to_c_string()
         }
     }
 
-    default_allocator.allocator.deallocate(default_allocator.allocator.context, c_string, (str.length + 1) * sizeof(char));
+    heap_allocator.allocator.deallocate(heap_allocator.allocator.context, c_string, (str.length + 1) * sizeof(char));
     return 0;
 
 cleanup:
-    default_allocator.allocator.deallocate(default_allocator.allocator.context, c_string, (str.length + 1) * sizeof(char));
+    heap_allocator.allocator.deallocate(heap_allocator.allocator.context, c_string, (str.length + 1) * sizeof(char));
     return 1;
 
 }
@@ -199,7 +199,7 @@ cleanup:
 static int test_ctd_string_builder_push_back()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {
@@ -243,7 +243,7 @@ cleanup:
 static int test_ctd_string_builder_pop_back()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {
@@ -281,7 +281,7 @@ cleanup:
 static int test_ctd_string_builder_append()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {
@@ -341,7 +341,7 @@ cleanup:
 static int test_ctd_string_builder_insert()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {
@@ -386,7 +386,7 @@ static int test_ctd_string_builder_remove()
 {
 
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {
@@ -435,7 +435,7 @@ cleanup:
 static int test_ctd_string_builder_find()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder_1 = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     ctd_string_builder builder_2 = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
@@ -510,7 +510,7 @@ cleanup:
 static int test_ctd_string_builder_contains()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {
@@ -550,7 +550,7 @@ cleanup:
 static int test_ctd_string_builder_replace()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {
@@ -587,7 +587,7 @@ cleanup:
 static int test_ctd_string_builder_replace_all()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder_1 = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     ctd_string_builder builder_2 = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
@@ -630,7 +630,7 @@ cleanup:
 static int test_ctd_string_builder_reverse()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {
@@ -658,7 +658,7 @@ cleanup:
 static int test_ctd_string_builder_clear()
 {
     ctd_error error = {0};
-    ctd_allocator allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator allocator = ctd_heap_allocator_create().allocator;
     ctd_string_builder builder = ctd_string_builder_create(100 * sizeof(char), &allocator, &error);
     if (error.error_type != NO_ERROR)
     {

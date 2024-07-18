@@ -15,7 +15,7 @@ typedef struct ctd_page_context
 
 int test_ctd_page_allocator_create()
 {
-    ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator heap_allocator = ctd_heap_allocator_create().allocator;
     const ctd_allocator page_allocator = ctd_page_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_page_allocator wrapped_page_allocator = {.allocator = page_allocator};
     ctd_page_context* context = page_allocator.context;
@@ -30,7 +30,7 @@ cleanup:;
 }
 int test_ctd_page_allocator_allocate()
 {
-    ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator heap_allocator = ctd_heap_allocator_create().allocator;
     ctd_allocator page_allocator = ctd_page_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_page_allocator wrapped_page_allocator = {.allocator = page_allocator};
     ctd_page_context* context = page_allocator.context;
@@ -55,7 +55,7 @@ cleanup:;
 }
 int test_ctd_page_allocator_reallocate()
 {
-    ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator heap_allocator = ctd_heap_allocator_create().allocator;
     ctd_allocator page_allocator = ctd_page_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_page_allocator wrapped_page_allocator = {.allocator = page_allocator};
     ctd_page_context* context = page_allocator.context;
@@ -86,7 +86,7 @@ cleanup:
 }
 int test_ctd_page_allocator_deallocate()
 {
-    ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator heap_allocator = ctd_heap_allocator_create().allocator;
     ctd_allocator page_allocator = ctd_page_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_page_allocator wrapped_page_allocator = {.allocator = page_allocator};
     char* data = page_allocator.allocate(page_allocator.context, 5 * sizeof(char), alignof(char));

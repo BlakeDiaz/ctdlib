@@ -10,11 +10,11 @@ typedef struct ctd_allocator
     void* context;
 } ctd_allocator;
 
-typedef struct ctd_default_allocator
+typedef struct ctd_heap_allocator
 {
     ctd_allocator allocator;
-} ctd_default_allocator;
+} ctd_heap_allocator;
 
-extern ctd_default_allocator ctd_default_allocator_instance;
-ctd_default_allocator ctd_default_allocator_create();
+extern ctd_heap_allocator ctd_heap_allocator_instance;
+ctd_heap_allocator ctd_heap_allocator_create();
 #endif // CTD_ALLOCATOR_H

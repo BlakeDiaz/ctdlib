@@ -4,10 +4,10 @@
 #include <stdalign.h>
 #include <stdlib.h>
 
-int test_ctd_default_allocator_create()
+int test_ctd_heap_allocator_create()
 {
-    const ctd_default_allocator default_allocator = ctd_default_allocator_create();
-    const ctd_allocator allocator = default_allocator.allocator;
+    const ctd_heap_allocator heap_allocator = ctd_heap_allocator_create();
+    const ctd_allocator allocator = heap_allocator.allocator;
 
     if (allocator.allocate == NULL) return 1;
     if (allocator.reallocate == NULL) return 1;
@@ -17,10 +17,10 @@ int test_ctd_default_allocator_create()
     return 0;
 }
 
-int test_ctd_default_allocator_allocate()
+int test_ctd_heap_allocator_allocate()
 {
-    ctd_default_allocator default_allocator = ctd_default_allocator_create();
-    ctd_allocator allocator = default_allocator.allocator;
+    ctd_heap_allocator heap_allocator = ctd_heap_allocator_create();
+    ctd_allocator allocator = heap_allocator.allocator;
 
     ptrdiff_t size = 100 * sizeof(uint32_t);
     char* buffer = allocator.allocate(allocator.context, size, alignof(uint32_t));
@@ -30,10 +30,10 @@ int test_ctd_default_allocator_allocate()
 }
 
 
-int test_ctd_default_allocator_reallocate()
+int test_ctd_heap_allocator_reallocate()
 {
-    ctd_default_allocator default_allocator = ctd_default_allocator_create();
-    ctd_allocator allocator = default_allocator.allocator;
+    ctd_heap_allocator heap_allocator = ctd_heap_allocator_create();
+    ctd_allocator allocator = heap_allocator.allocator;
 
     const ptrdiff_t size = 100 * sizeof(uint32_t);
     char* buffer = allocator.allocate(allocator.context, size, alignof(uint32_t));
@@ -55,9 +55,9 @@ void test_ctd_allocator_functions()
     uint32_t number_of_tests_failed = 0;
     printf("---------- Begin ctd_allocator Test ----------\n");
 
-    RUN_TEST(ctd_default_allocator_create, status, number_of_tests_failed)
-    RUN_TEST(ctd_default_allocator_allocate, status, number_of_tests_failed)
-    RUN_TEST(ctd_default_allocator_reallocate, status, number_of_tests_failed)
+    RUN_TEST(ctd_heap_allocator_create, status, number_of_tests_failed)
+    RUN_TEST(ctd_heap_allocator_allocate, status, number_of_tests_failed)
+    RUN_TEST(ctd_heap_allocator_reallocate, status, number_of_tests_failed)
 
     if (number_of_tests_failed == 0)
     {

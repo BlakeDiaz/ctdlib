@@ -13,7 +13,7 @@ typedef struct ctd_arena_context
 
 int test_ctd_arena_allocator_create()
 {
-    ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator heap_allocator = ctd_heap_allocator_create().allocator;
     const ctd_allocator arena = ctd_arena_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_arena_context* context = arena.context;
     if (arena.context == NULL) return 1;
@@ -33,7 +33,7 @@ cleanup:
 
 int test_ctd_arena_allocate()
 {
-    ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator heap_allocator = ctd_heap_allocator_create().allocator;
     const ctd_allocator arena = ctd_arena_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_arena_context* context = arena.context;
 
@@ -53,7 +53,7 @@ cleanup:
 
 int test_ctd_arena_reallocate()
 {
-    ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator heap_allocator = ctd_heap_allocator_create().allocator;
     const ctd_allocator arena = ctd_arena_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_arena_context* context = arena.context;
 
@@ -84,7 +84,7 @@ cleanup:
 
 int test_ctd_arena_deallocate()
 {
-    ctd_allocator heap_allocator = ctd_default_allocator_create().allocator;
+    ctd_allocator heap_allocator = ctd_heap_allocator_create().allocator;
     const ctd_allocator arena = ctd_arena_allocator_create(100 * sizeof(char), &heap_allocator).allocator;
     ctd_arena_context* context = arena.context;
 
