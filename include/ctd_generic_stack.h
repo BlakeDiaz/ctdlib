@@ -14,16 +14,16 @@
     ctd_stack_##typename variable_name = ctd_stack_##typename##_create((capacity), (error_ptr))
 
 #define ctd_stack_destroy(stack_ptr)                                                                                   \
-_Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, destroy))(stack_ptr)
+_Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, destroy)))(stack_ptr)
 
 #define ctd_stack_push(stack_ptr, value, error_ptr)                                                                    \
-_Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, push))(stack_ptr, value, error_ptr)
+_Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, push)))(stack_ptr, value, error_ptr)
 
 #define ctd_stack_pop(stack_ptr, error_ptr)                                                                            \
-_Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, pop))(stack_ptr, error_ptr)
+_Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, pop)))(stack_ptr, error_ptr)
 
 #define ctd_stack_peek(stack_ptr, error_ptr)                                                                           \
-_Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek))(stack_ptr, error_ptr)
+_Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek)))(stack_ptr, error_ptr)
 
 #define GENERIC_STACK_TYPE_DECL(type, typename, ...)                                                                   \
     typedef struct ctd_stack_##typename                                                                                \
