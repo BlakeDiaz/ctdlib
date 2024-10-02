@@ -25,7 +25,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, pop)))(
 #define ctd_stack_peek(stack_ptr, error_ptr)                                                                           \
 _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek)))(stack_ptr, error_ptr)
 
-#define GENERIC_STACK_TYPE_DECL(type, typename, ...)                                                                   \
+#define CTD_STACK_TYPE_DECL(type, typename, ...)                                                                       \
     typedef struct ctd_stack_##typename                                                                                \
     {                                                                                                                  \
         type* data;                                                                                                    \
@@ -39,7 +39,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek)))
     }                                                                                                                  \
     ctd_stack_##typename##_iterator;
 
-#define GENERIC_STACK_FUNCTIONS_DECL(type, typename, ...)                                                              \
+#define CTD_STACK_FUNCTIONS_DECL(type, typename, ...)                                                                  \
     ctd_stack_##typename ctd_stack_##typename##_create(ptrdiff_t capacity, ctd_error* error);                          \
     void ctd_stack_##typename##_destroy(ctd_stack_##typename* self);                                                   \
     void ctd_stack_##typename##_push(ctd_stack_##typename* self, type value, ctd_error* error);                        \
@@ -51,7 +51,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek)))
         typename##_iterator_end(ctd_stack_##typename* ctd_stack, ctd_error* error);                                    \
     void ctd_stack_##typename##_iterator_increment(ctd_stack_##typename##_iterator* iterator, ctd_error* error);
 
-#define GENERIC_STACK_IMPL(type, typename, ...)                                                                        \
+#define CTD_STACK_IMPL(type, typename, ...)                                                                            \
     void ctd_stack_##typename##_resize(ctd_stack_##typename* self, ptrdiff_t new_capacity, ctd_error* error);          \
     void ctd_stack_##typename##_maybe_expand(ctd_stack_##typename* self, ctd_error* error);                            \
     void ctd_stack_##typename##_maybe_contract(ctd_stack_##typename* self, ctd_error* error);                          \
