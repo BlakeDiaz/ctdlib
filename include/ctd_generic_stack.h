@@ -98,9 +98,14 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek)))
             return;                                                                                                    \
         }                                                                                                              \
                                                                                                                        \
-        self->data[self->length - 1] = value;                                                                          \
-        self->length++;                                                                                                \
         ctd_stack_##typename##_maybe_expand(self, error);                                                              \
+        if (error->error_type != NO_ERROR)                                                                             \
+        {                                                                                                              \
+            return;                                                                                                    \
+        }                                                                                                              \
+                                                                                                                       \
+        self->data[self->length] = value;                                                                              \
+        self->length++;                                                                                                \
     }                                                                                                                  \
                                                                                                                        \
     type ctd_stack_##typename##_pop(ctd_stack_##typename* self, ctd_error* error)                                      \
@@ -167,7 +172,7 @@ _Generic((stack_ptr), REMOVE_LEADING_COMMA(CTD_STACK_TYPES(FORMAT_STACK, peek)))
     }                                                                                                                  \
     void ctd_stack_##typename##_maybe_expand(ctd_stack_##typename* self, ctd_error* error)                             \
     {                                                                                                                  \
-        if (self->length == self->capacity)                                                                            \
+        if (self->length + 1 >= self->capacity)                                                                        \
         {                                                                                                              \
             ctd_stack_##typename##_resize(self, self->capacity * 2 + 1, error);                                        \
         }                                                                                                              \
